@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { revalidatePath } from "next/cache";
 
 async function addOrchestra(formData: FormData) {
   "use server";
@@ -11,6 +12,8 @@ async function addOrchestra(formData: FormData) {
     name: name,
     created_by: "James",
   });
+
+  revalidatePath("/");
 }
 
 export default async function Home() {
