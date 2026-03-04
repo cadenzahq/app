@@ -1,4 +1,16 @@
+"use client";
+
+import { createClient } from "@/lib/supabase/client";
+
 export default function Home() {
+  
+  const supabase = createClient();
+
+  async function testAuth() {
+    const result = await supabase.auth.getUser();
+    console.log(result);
+  }
+
   return (
     <main style={{
       minHeight: "100vh",
@@ -6,7 +18,8 @@ export default function Home() {
       flexDirection: "column",
       justifyContent: "center",
       alignItems: "center",
-      fontFamily: "Inter, sans-serif"
+      fontFamily: "Inter, sans-serif",
+      gap: "12px"
     }}>
       
       <h1 style={{
@@ -31,12 +44,29 @@ export default function Home() {
           backgroundColor: "#111",
           color: "white",
           textDecoration: "none",
-          borderRadius: "6px"
+          borderRadius: "6px",
+          marginBottom: "10px"
         }}
       >
         Open Dashboard
       </a>
 
+      <button
+        onClick={testAuth}
+        style={{
+          padding: "10px",
+          background: "black",
+          color: "white",
+          marginTop: "20px",
+          cursor: "pointer",
+          position: "relative",
+          zIndex: 10
+        }}
+      >
+        Test Auth
+      </button>
+
     </main>
+  
   );
 }
