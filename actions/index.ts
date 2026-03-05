@@ -1,1 +1,1 @@
-export * from "../../actions/admin/send-rsvp";
+export * from "./admin/send-rsvp";

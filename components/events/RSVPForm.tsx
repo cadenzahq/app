@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { updateAttendanceAction } from "@/app/events/actions";
+import { updateAttendanceAction } from "@/actions/admin/events";
 
 export default function RSVPForm({
   eventId,
