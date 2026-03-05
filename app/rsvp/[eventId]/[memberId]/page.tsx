@@ -1,14 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import RSVPForm from "@/components/events/RSVPForm";
 
-const supabase = await createClient();
-
 export default async function RSVPPage({
   params,
 }: {
   params: Promise<{ eventId: string; memberId: string }>;
 }) {
 
+  const supabase = await createClient();
+  
   const { eventId, memberId } = await params;
 
   // Get event info

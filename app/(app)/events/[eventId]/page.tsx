@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import {
   updateAttendanceAction,
   createRSVPInvite,
-} from "@/app/actions/send-rsvp";
+} from "@/actions/admin/send-rsvp";
 
 export default async function EventDetailsPage({
   params,

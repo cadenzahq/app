@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { sendEventReminder } from "@/app/admin/dashboard/actions";
+import { sendEventReminder } from "@/actions/admin/dashboard";
 import { Button } from "@/components/ui/Button";
 
 interface Props {
