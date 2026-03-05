@@ -6,6 +6,8 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+export const scrollRestoration = "manual";
+
 export const metadata: Metadata = {
   title: "Cadenza",
   description: "Rehearsal and roster management for community orchestras",
