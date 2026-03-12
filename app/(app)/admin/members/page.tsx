@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import { getActiveOrchestra } from "@/lib/orchestra";
+import { getActiveOrchestraForUser } from "@/lib/orchestra";
 import { redirect } from "next/navigation";
 
 export default async function MembersPage() {
   const supabase = await createClient();
-  const orchestra = await getActiveOrchestra();
+  const orchestra = await getActiveOrchestraForUser(supabase);
 
   if (!orchestra) redirect("/admin/dashboard");
 

@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getActiveOrchestra } from "@/lib/orchestra";
+import { getActiveOrchestraForUser } from "@/lib/orchestra";
 import { RSVP_STATUS } from "@/lib/constants";
 
 export async function sendEventReminder(
@@ -10,7 +10,7 @@ export async function sendEventReminder(
   const supabase = await createClient();
 
   // 1️⃣ Get active orchestra inside the server action
-  const orchestra = await getActiveOrchestra();
+  const orchestra = await getActiveOrchestraForUser(supabase);
   if (!orchestra) {
     return { success: false, count: 0 };
   }

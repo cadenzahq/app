@@ -66,7 +66,7 @@ export default async function Header() {
 
       <nav className="flex items-center gap-6">
         <a href="/dashboard">Dashboard</a>
-        <a href="/rehearsals">Rehearsals</a>
+        <a href="/events">Events</a>
         <a href="/members">Members</a>
 
         {memberships && memberships.length > 0 && (

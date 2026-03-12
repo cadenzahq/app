@@ -1,18 +1,53 @@
-import { Card } from "@/components/ui/Card";
-import { CardHeader } from "@/components/ui/CardHeader";
+import DashboardCard from "@/components/dashboard/DashboardCard";
+import { Button } from "@/components/ui/Button";
+import Link from "next/link";
 
 interface TasksCardProps {
+  tasks: {
+    id: string;
+    title: string;
+    is_complete: boolean;
+  }[];
 }
 
-export default function TasksCard({
-}: TasksCardProps) {
+export default function TasksCard({ tasks }: TasksCardProps) {
   return (
-    <Card>
-      <CardHeader title="Tasks" />
+    <DashboardCard title="Tasks">
+      <div className="flex flex-col h-full justify-between">
 
-      <div className="text-sm text-gray-500">
-        No pending tasks.
+        <div className="flex flex-col gap-3 max-h-[160px] overflow-y-auto">
+          {tasks.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              No pending tasks.
+            </p>
+          ) : (
+            tasks.map(task => (
+              <label
+                key={task.id}
+                className="flex items-center gap-3 text-sm"
+              >
+                <input type="checkbox" />
+                {task.title}
+              </label>
+            ))
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          <Link href="/admin/tasks/new">
+            <Button variant="outline" className="w-full">
+              New
+            </Button>
+          </Link>
+
+          <Link href="/admin/tasks">
+            <Button variant="outline" className="w-full">
+              View All
+            </Button>
+          </Link>
+        </div>
+
       </div>
-    </Card>
+    </DashboardCard>
   );
 }

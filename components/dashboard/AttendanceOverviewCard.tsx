@@ -1,5 +1,4 @@
-import { Card } from "@/components/ui/Card";
-import { CardHeader } from "@/components/ui/CardHeader";
+import DashboardCard from "@/components/dashboard/DashboardCard";
 
 interface AttendanceOverviewCardProps {
   attendanceRate: number;
@@ -12,42 +11,46 @@ export default function AttendanceOverviewCard({
   belowRequirement,
   totalMembers,
 }: AttendanceOverviewCardProps) {
-  return (
-    <Card>
-      <CardHeader title="Attendance Overview" />
 
-      <div className="mt-6 space-y-6">
-        {/* Primary Stat */}
-        <div className="text-center">
-          <div className="text-4xl font-semibold tracking-tight">
-            {attendanceRate}%
-          </div>
-          <div className="text-sm text-gray-500 mt-1">
-            Avg Attendance Rate
-          </div>
+  const formattedRate = Number.isFinite(attendanceRate)
+    ? `${attendanceRate.toFixed(0)}%`
+    : "—";
+
+  return (
+    <DashboardCard title="Attendance Overview">
+      <div className="text-center py-4">
+
+        <div className="text-4xl font-semibold text-gray-900">
+          {formattedRate}
         </div>
 
-        {/* Secondary Stats */}
-        <div className="grid grid-cols-2 gap-6 text-center">
+        <p className="text-sm text-gray-500 mt-1">
+          Avg Attendance Rate
+        </p>
+
+        <div className="grid grid-cols-2 gap-4 mt-8 text-sm">
+
           <div>
-            <div className="text-xl font-semibold">
+            <div className="font-semibold">
               {belowRequirement}
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-gray-500">
               Below Requirement
             </div>
           </div>
 
           <div>
-            <div className="text-xl font-semibold">
+            <div className="font-semibold">
               {totalMembers}
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-gray-500">
               Active Members
             </div>
           </div>
+
         </div>
+
       </div>
-    </Card>
+    </DashboardCard>
   );
 }

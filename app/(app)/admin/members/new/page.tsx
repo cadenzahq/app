@@ -1,11 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { getActiveOrchestra } from '@/lib/orchestra'
+import { getActiveOrchestraForUser } from '@/lib/orchestra'
 
 export default async function MembersPage() {
 
   const supabase = await createClient();
-  const activeOrchestraId = await getActiveOrchestra()
+  const activeOrchestraId = await getActiveOrchestraForUser(supabase)
 
   if (!activeOrchestraId) {
     return <div style={containerStyle}>No orchestra selected.</div>;
@@ -22,7 +22,7 @@ export default async function MembersPage() {
     "use server";
 
     const supabase = await createClient();
-    const activeOrchestraId = await getActiveOrchestra();
+    const activeOrchestraId = await getActiveOrchestraForUser(supabase);
 
     if (!activeOrchestraId) return;
 

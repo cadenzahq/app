@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
-import { getActiveOrchestra } from "@/lib/orchestra";
+import { getActiveOrchestraForUser } from "@/lib/orchestra";
 import EditEventForm from "@/components/admin/EditEventForm";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function NewEventPage() {
-  const orchestra = await getActiveOrchestra();
+  const supabase = await createClient();
+  const orchestra = await getActiveOrchestraForUser(supabase);
 
   if (!orchestra) redirect("/admin/dashboard");
 

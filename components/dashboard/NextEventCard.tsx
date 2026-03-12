@@ -4,16 +4,10 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { CardHeader } from "@/components/ui/CardHeader";
 import { Button } from "@/components/ui/Button";
-import type { RSVPCounts } from "@/lib/types";
 import { useState } from "react";
 import SendReminderButton from "@/components/admin/dashboard/SendReminderButton";
-
-interface Event {
-  id: string;
-  name: string;
-  start_time: string;
-  location: string | null;
-}
+import RSVPStatCard from "@/components/dashboard/RSVPStatCard";
+import { Event , RSVPCounts} from "@/lib/types";
 
 interface NextEventCardProps {
   event: Event | null;
@@ -21,121 +15,142 @@ interface NextEventCardProps {
 }
 
 export default function NextEventCard({ event, rsvpCounts}: NextEventCardProps) {
-  if (!event) {
+    const [reminderMessage, setReminderMessage] = useState("");
+    
+    if (!event) {
+        return (
+            <Card>
+            <CardHeader title="Next Event" />
+
+            <div className="flex flex-col items-start gap-4 py-6">
+                <p className="text-sm text-gray-500 mb-4">
+                No upcoming events.
+                </p>
+
+                <Link href="/admin/events/new">
+                <Button>Create Event</Button>
+                </Link>
+            </div>
+            </Card>
+        );
+    }
+
+    const EMPTY_COUNTS: RSVPCounts = {
+        yes: 0,
+        maybe: 0,
+        no: 0,
+        pending: 0,
+    };
+
+    const counts = rsvpCounts ?? EMPTY_COUNTS;
+    const formattedDate = new Date(event.start_time).toLocaleString();
+    const eventUrl = `/admin/events/${event.id}`;
+    const editUrl = `${eventUrl}/edit`;
+    const attendanceUrl = `${eventUrl}#attendance`;
+
+    const total =
+        counts.yes +
+        counts.maybe +
+        counts.no +
+        counts.pending;
+
+    const attendanceRatio =
+        total > 0 ? counts.yes / total : 0;
+
+    let status = "Healthy";
+    let statusColor = "bg-green-100 text-green-700";
+
+    if (attendanceRatio < 0.5) {
+        status = "Low Attendance";
+        statusColor = "bg-red-100 text-red-700";
+    } else if (counts.pending > total * 0.3) {
+        status = "Waiting on RSVPs";
+        statusColor = "bg-yellow-100 text-yellow-700";
+    }
+
     return (
-      <Card>
-        <CardHeader title="Next Event" />
-
-        <div className="flex flex-col items-start gap-4 py-6">
-            <p className="text-sm text-gray-500 mb-4">
-            No upcoming events.
-            </p>
-
-            <Link href="/admin/events/new">
-            <Button>Create Event</Button>
-            </Link>
-        </div>
-      </Card>
-    );
-  }
-
-const [reminderMessage, setReminderMessage] = useState("");
-const counts = rsvpCounts ?? { yes: 0, maybe: 0, no: 0, pending: 0 };
-
-  return (
     <Card>
-      <CardHeader title="Next Event" />
+        <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-800">
+            Next Event
+        </h2>
+
+        <span
+            className={`text-xs font-medium px-3 py-1 rounded-full ${statusColor}`}
+        >
+            {status}
+        </span>
+        </div>
 
         <div className="space-y-2 mb-6">
-        <p className="font-medium text-gray-900">
-            {event.name}
-        </p>
-        <p className="text-sm text-gray-500">
-            {new Date(event.start_time).toLocaleString()}
-        </p>
-        {event.location && (
-            <p className="text-sm text-gray-500">
-            {event.location}
-            </p>
-        )}
+            <p className="font-medium text-gray-900">{event.name}</p>
+            <p className="text-sm text-gray-500">{formattedDate}</p>
+            {event.location && (
+                <p className="text-sm text-gray-500">{event.location}</p>
+            )}
         </div>
 
         <div className="grid grid-cols-4 gap-3 mt-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-            <div className="text-lg font-semibold text-green-700">
-                {counts.yes}
-            </div>
-            <div className="text-xs text-green-600">
-                Attending
-            </div>
-            </div>
+            <RSVPStatCard
+                label="Attending"
+                value={counts.yes}
+                color="green"
+            />
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-            <div className="text-lg font-semibold text-yellow-700">
-                {counts.maybe}
-            </div>
-            <div className="text-xs text-yellow-600">
-                Maybe
-            </div>
-            </div>
+            <RSVPStatCard
+                label="Maybe"
+                value={counts.maybe}
+                color="yellow"
+            />
 
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
-            <div className="text-lg font-semibold text-red-700">
-                {counts.no}
-            </div>
-            <div className="text-xs text-red-600">
-                Not Attending
-            </div>
-            </div>
+            <RSVPStatCard
+                label="Not Attending"
+                value={counts.no}
+                color="red"
+            />
 
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-            <div className="text-lg font-semibold text-gray-700">
-                {counts.pending}
-            </div>
-            <div className="text-xs text-gray-600">
-                Pending
-            </div>
-            </div>
+            <RSVPStatCard
+                label="Pending"
+                value={counts.pending}
+                color="gray"
+            />
         </div>
 
         {reminderMessage && (
-        <div className="mt-3 grid grid-cols-4 gap-4">
-            <div className="col-start-3 col-span-2">
-            <div className="text-sm text-blue-700 text-right">
+            <div className="mt-3 text-right text-sm text-blue-700">
                 {reminderMessage}
             </div>
-            </div>
-        </div>
         )}
 
         <hr className="my-3 border-gray-200" />
 
         <div className="grid grid-cols-2 gap-3">
-        <Link href={`/admin/events/${event.id}`}>
-            <Button variant="outline" className="w-full">
-                View Event
-            </Button>
-        </Link>
+            <Link href={eventUrl}>
+                <Button variant="outline" className="w-full">
+                    View Event
+                </Button>
+            </Link>
 
-        <Link href={`/admin/events/${event.id}/edit`}>
-            <Button variant="outline" className="w-full">
-                Edit Event
-            </Button>
-        </Link>
+            <Link href={editUrl}>
+                <Button variant="outline" className="w-full">
+                    Edit Event
+                </Button>
+            </Link>
 
-        <SendReminderButton
-            eventId={event.id}
-            pendingCount={rsvpCounts?.pending ?? 0}
-            onSuccess={(msg) => setReminderMessage(msg)}
-        />
+            <SendReminderButton
+                eventId={event.id}
+                pendingCount={counts.pending}
+                disabled={counts.pending === 0}
+                onSuccess={(msg) => setReminderMessage(msg)}
+            />
 
-        <Link href={`/admin/events/${event.id}/attendance`}>
-            <Button className="w-full">
-                Mark Attendance
-            </Button>
-        </Link>
+            <Link href={attendanceUrl}>
+                <Button className="w-full">
+                    Mark Attendance
+                </Button>
+            </Link>
         </div>
 
     </Card>
-  );
+    );
 }

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getActiveOrchestra } from '@/lib/orchestra'
+import { getActiveOrchestraForUser } from '@/lib/orchestra'
 import AttendanceRow from "@/components/admin/AttendanceRow";
 import { revalidatePath } from "next/cache";
 import Popup from "@/components/ui/Popup";
@@ -19,7 +19,7 @@ export default async function EventDetailsPage({
   const { eventId } = await params;
 
   const supabase = await createClient();
-  const activeOrchestraId = await getActiveOrchestra()
+  const activeOrchestraId = await getActiveOrchestraForUser(supabase)
 
   if (!activeOrchestraId) redirect('/dashboard')
 
@@ -69,7 +69,7 @@ export default async function EventDetailsPage({
     "use server";
 
     const supabase = await createClient();
-    const activeOrchestraId = await getActiveOrchestra()
+    const activeOrchestraId = await getActiveOrchestraForUser(supabase)
     if (!activeOrchestraId) return
 
     const { data: members } = await supabase

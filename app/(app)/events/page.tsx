@@ -2,13 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import LocalDateTime from "@/components/ui/LocalDateTime";
 import Link from "next/link";
-import { getActiveOrchestra } from '@/lib/orchestra'
+import { getActiveOrchestraForUser } from '@/lib/orchestra'
 
 async function addEvent(formData: FormData) {
   "use server";
   
   const supabase = await createClient()
-  const activeOrchestraId = await getActiveOrchestra()
+  const activeOrchestraId = await getActiveOrchestraForUser()
 
   if (!activeOrchestraId) return;
 
@@ -35,7 +35,7 @@ async function addEvent(formData: FormData) {
 export default async function EventsPage() {
 
   const supabase = await createClient();
-  const activeOrchestraId = await getActiveOrchestra()
+  const activeOrchestraId = await getActiveOrchestraForUser()
 
   if (!activeOrchestraId) {
     return <div>No orchestra selected.</div>

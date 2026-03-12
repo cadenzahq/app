@@ -1,25 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { getActiveOrchestra } from "@/lib/orchestra";
+import { getActiveOrchestraForUser } from "@/lib/orchestra";
+import { createAnnouncement } from "@/lib/actions/announcements";
 
 export default async function NewAnnouncementPage() {
   const supabase = await createClient();
-  const orchestra = await getActiveOrchestra();
+  const orchestra = await getActiveOrchestraForUser(supabase);
 
   if (!orchestra) redirect("/admin/dashboard");
-
-  async function createAnnouncement(formData: FormData) {
-    "use server";
-
-    const content = formData.get("content") as string;
-
-    await supabase.from("announcements").insert({
-      content,
-      orchestra_id: orchestra,
-    });
-
-    redirect("/admin/dashboard");
-  }
 
   return (
     <div className="max-w-2xl mx-auto p-10">

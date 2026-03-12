@@ -5,12 +5,13 @@ import { sendEventReminder } from "@/actions/admin/dashboard";
 import { Button } from "@/components/ui/Button";
 
 interface Props {
-  eventId: string;
-  pendingCount: number;
-  onSuccess: (message: string) => void;
+  eventId: string
+  pendingCount: number
+  disabled?: boolean
+  onSuccess: (msg: string) => void
 }
 
-export default function SendReminderButton({ eventId, pendingCount , onSuccess }: Props) {
+export default function SendReminderButton({ eventId, pendingCount , disabled, onSuccess }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -28,15 +29,15 @@ export default function SendReminderButton({ eventId, pendingCount , onSuccess }
 
   return (
     <>
-        <Button
-        variant="outline"
-        className="w-full"
-        disabled={pendingCount === 0}
-        onClick={() => setIsOpen(true)}
-        >
-        {pendingCount === 0
-            ? "All Members Responded"
-            : "Send Reminders"}
+        <Button 
+          variant="outline"
+          className="w-full"
+          disabled={disabled}
+          onClick={() => setIsOpen(true)}
+          >
+          {pendingCount === 0
+              ? "All Members Responded"
+              : "Send Reminders"}
         </Button>
 
       {isOpen && (

@@ -1,11 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import EventsClient from "./EventsClient";
 import { redirect } from "next/navigation";
-import { getActiveOrchestra } from "@/lib/orchestra";
+import { getActiveOrchestraForUser } from "@/lib/orchestra";
 
 export default async function EventsPage() {
   const supabase = await createClient();
-  const orchestra = await getActiveOrchestra();
+  const orchestra = await getActiveOrchestraForUser();
 
   if (!orchestra) {
     return <div>No orchestra selected.</div>;

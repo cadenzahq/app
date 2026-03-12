@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { getActiveOrchestra } from "@/lib/orchestra";
+import { getActiveOrchestraForUser } from "@/lib/orchestra";
 import EditEventForm from "@/components/admin/EditEventForm";
 
 interface EditEventPageProps {
@@ -14,7 +14,7 @@ export default async function EditEventPage(
 ) {
   const { eventId } = await props.params;
   const supabase = await createClient();
-  const orchestra = await getActiveOrchestra();
+  const orchestra = await getActiveOrchestraForUser(supabase);
 
   if (!orchestra) {
     redirect("admin/dashboard");

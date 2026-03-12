@@ -3,78 +3,106 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+type Props = {
+  memberId: string
+  memberName: string
+  instrument: string | null
+  initialStatus: string | null
+  action: (formData: FormData) => Promise<void>
+}
+
+const ATTENDANCE_OPTIONS = [
+  "present",
+  "late",
+  "absent",
+  "excused"
+]
+
+const STATUS_STYLES: Record<string, string> = {
+  present: "bg-green-50 border-green-400 text-green-700",
+  late: "bg-yellow-50 border-yellow-400 text-yellow-700",
+  absent: "bg-red-50 border-red-400 text-red-700",
+  excused: "bg-gray-100 border-gray-400 text-gray-600",
+}
+
 export default function AttendanceRow({
-  eventId,
   memberId,
-  orchestraId,
-  initialStatus,
   memberName,
   instrument,
+  initialStatus,
   action
-}: any) {
+}: Props) {
 
-  const router = useRouter();
-  const [status, setStatus] = useState(initialStatus);
-  const [dirty, setDirty] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const router = useRouter()
 
-    function handleSave() {
+  const [status, setStatus] = useState(initialStatus ?? "")
+  const [dirty, setDirty] = useState(false)
+  const [saved, setSaved] = useState(false)
 
-      const formData = new FormData();
-      formData.append("memberId", memberId);
-      formData.append("status", status);
+  const [isPending, startTransition] = useTransition()
 
-      setDirty(false);
+  function handleSave() {
 
-      startTransition(async () => {
+    const formData = new FormData()
+    formData.append("memberId", memberId)
+    formData.append("status", status)
 
-          await action(formData);
+    setDirty(false)
 
-          setSaved(true);
+    startTransition(async () => {
 
-          // Refresh server components AFTER save completes
-          router.refresh();
+      await action(formData)
 
-          setTimeout(() => {
-          setSaved(false);
-          }, 2000);
+      setSaved(true)
 
-      });
+      router.refresh()
 
-    }
+      setTimeout(() => {
+        setSaved(false)
+      }, 2000)
+
+    })
+  }
 
   return (
     <tr>
 
-      <td style={tdStyle}>{memberName}</td>
+      <td className="py-2">{memberName}</td>
 
-      <td style={tdStyle}>{instrument}</td>
+      <td className="py-2">{instrument ?? "—"}</td>
 
-      <td style={tdStyle}>
+      <td className="py-2">
 
         <select
           value={status}
           onChange={(e) => {
-            setStatus(e.target.value);
-            setDirty(true);
-            setSaved(false);
+            setStatus(e.target.value)
+            setDirty(true)
+            setSaved(false)
           }}
-          style={selectStyle}
+          className={`mr-2 border rounded px-2 py-1 text-sm
+            ${STATUS_STYLES[status] ?? "border-gray-300"}
+          `}
         >
-          <option>No Response</option>
-          <option>Attending</option>
-          <option>Maybe</option>
-          <option>Absent</option>
+
+          <option value="">No Selection</option>
+
+          {ATTENDANCE_OPTIONS.map(option => (
+            <option key={option} value={option}>
+              {option.charAt(0).toUpperCase() + option.slice(1)}
+            </option>
+          ))}
+
         </select>
 
         <button
           onClick={handleSave}
           disabled={!dirty || isPending}
-          style={{
-            ...buttonStyle,
-            opacity: (!dirty || isPending) ? 0.5 : 1
-          }}
+          className={`px-2 py-1 rounded text-xs font-medium ${
+            (!dirty || isPending)
+              ? "bg-gray-300 text-gray-500"
+              : "bg-gray-800 text-white hover:bg-gray-700"
+          }`}
         >
           {isPending
             ? "Saving..."
@@ -86,23 +114,5 @@ export default function AttendanceRow({
       </td>
 
     </tr>
-  );
+  )
 }
-
-const tdStyle = {
-  padding: "8px"
-};
-
-const selectStyle = {
-  padding: "4px",
-  marginRight: "8px"
-};
-
-const buttonStyle = {
-  padding: "4px 8px",
-  border: "none",
-  borderRadius: "4px",
-  backgroundColor: "#333",
-  color: "white",
-  cursor: "pointer"
-};
