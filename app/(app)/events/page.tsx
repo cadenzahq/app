@@ -8,7 +8,7 @@ async function addEvent(formData: FormData) {
   "use server";
   
   const supabase = await createClient()
-  const activeOrchestraId = await getActiveOrchestraForUser()
+  const activeOrchestraId = await getActiveOrchestraForUser(supabase)
 
   if (!activeOrchestraId) return;
 
@@ -35,7 +35,7 @@ async function addEvent(formData: FormData) {
 export default async function EventsPage() {
 
   const supabase = await createClient();
-  const activeOrchestraId = await getActiveOrchestraForUser()
+  const activeOrchestraId = await getActiveOrchestraForUser(supabase)
 
   if (!activeOrchestraId) {
     return <div>No orchestra selected.</div>

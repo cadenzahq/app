@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Event } from "@/types/Event";
+import type { Event } from "@/lib/types";
 
 import {
   utcToLocalInput,

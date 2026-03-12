@@ -3,7 +3,7 @@
 import { useState } from "react";
 import EventModal from "@/components/admin/EventModal";
 import { formatEventDateTime, formatTimeRange } from "@/lib/utils/datetime";
-import type { Event } from "@/types/Event";
+import type { Event } from "@/lib/types";
 
 interface EventsClientProps {
   initialEvents: any[]; // or your Event type

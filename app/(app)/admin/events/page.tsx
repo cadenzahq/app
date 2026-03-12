@@ -5,7 +5,7 @@ import { getActiveOrchestraForUser } from "@/lib/orchestra";
 
 export default async function EventsPage() {
   const supabase = await createClient();
-  const orchestra = await getActiveOrchestraForUser();
+  const orchestra = await getActiveOrchestraForUser(supabase);
 
   if (!orchestra) {
     return <div>No orchestra selected.</div>;
