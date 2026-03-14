@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/Button";
 import { useState } from "react";
 import SendReminderButton from "@/components/admin/dashboard/SendReminderButton";
 import RSVPStatCard from "@/components/dashboard/RSVPStatCard";
-import { Event , RSVPCounts} from "@/lib/types";
+import { EventSummary , RSVPCounts} from "@/lib/types";
 
 interface NextEventCardProps {
-  event: Event | null;
+  event: EventSummary | null;
   rsvpCounts: RSVPCounts | null;
 }
 
