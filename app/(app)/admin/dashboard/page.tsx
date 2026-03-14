@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getActiveOrchestraForUser } from "@/lib/orchestra";
 import { getDashboardData } from "@/lib/dashboard"
+import type { EventSummary } from "@/lib/types";
 import NextEventCard from "@/components/dashboard/NextEventCard";
 import AttendanceOverviewCard from "@/components/dashboard/AttendanceOverviewCard";
 import AnnouncementsCard from "@/components/dashboard/AnnouncementsCard";
@@ -29,7 +30,10 @@ export default async function DashboardPage() {
         <div className="grid gap-4 lg:grid-cols-3 items-stretch">
 
           <div className="lg:col-span-2">
-            <NextEventCard event={dashboard.next_event} rsvpCounts={dashboard.rsvp_counts} />
+            <NextEventCard
+              event={dashboard.next_event as EventSummary | null}
+              rsvpCounts={dashboard.rsvp_counts}
+            />
           </div>
 
           <AnnouncementsCard announcements={dashboard.announcements} />
