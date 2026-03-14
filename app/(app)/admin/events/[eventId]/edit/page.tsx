@@ -3,30 +3,53 @@ import { redirect } from "next/navigation";
 import { getActiveOrchestraForUser } from "@/lib/orchestra";
 import EditEventForm from "@/components/admin/EditEventForm";
 
-interface EditEventPageProps {
-  params: {
-    eventId: string;
-  };
+interface PageProps {
+  params: Promise<{ eventId: string }>;
 }
 
-export default async function EditEventPage(
-  props: EditEventPageProps
-) {
-  const { eventId } = await props.params;
+export default async function EditEventPage({ params }: PageProps) {
+  const { eventId } = await params;
+
   const supabase = await createClient();
   const orchestra = await getActiveOrchestraForUser(supabase);
 
-  if (!orchestra) {
-    redirect("admin/dashboard");
-  }
+  if (!orchestra) redirect("/admin/dashboard");
 
-  // Fetch event
-  const { data: event } = await supabase
-    .from("events")
-    .select("*")
-    .eq("id", eventId)
-    .eq("orchestra_id", orchestra.id)
-    .single();
+  const [eventRes, seriesRes, seasonsRes] = await Promise.all([
+    supabase
+      .from("events")
+      .select(`
+        id,
+        name,
+        event_type,
+        start_time,
+        end_time,
+        location,
+        description,
+        series_id
+      `)
+      .eq("id", eventId)
+      .eq("orchestra_id", orchestra.id)
+      .maybeSingle(),
+
+    supabase
+      .from("event_series")
+      .select("id, name, season_id")
+      .eq("orchestra_id", orchestra.id)
+      .order("name"),
+
+    supabase
+      .from("seasons")
+      .select("id, name")
+      .eq("orchestra_id", orchestra.id)
+      .order("name"),
+  ]);
+
+console.log("seriesRes:", seriesRes);
+
+  const event = eventRes.data;
+  const series = seriesRes.data ?? [];
+  const seasons = seasonsRes.data ?? [];
 
   if (!event) {
     return <div className="p-10">Event not found.</div>;
@@ -34,14 +57,15 @@ export default async function EditEventPage(
 
   return (
     <div className="max-w-3xl mx-auto p-10">
-        <h1 className="text-2xl font-semibold mb-6">
-            Edit Event
-        </h1>
+      <h1 className="text-2xl font-semibold mb-6">
+        Edit Event
+      </h1>
 
-        <EditEventForm
+      <EditEventForm
         event={event}
-        orchestraId={orchestra.id}
-        />
+        series={series}
+        seasons={seasons}
+      />
     </div>
-);
+  );
 }

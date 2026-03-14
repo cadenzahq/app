@@ -17,6 +17,11 @@ const actions: QuickAction[] = [
     variant: "primary",
   },
   {
+    label: "View All Events",
+    href: "/admin/events",
+    variant: "outline",
+  },
+  {
     label: "Upload Music",
     href: "/admin/music",
     variant: "outline",

@@ -1,5 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function joinWaitlist(formData: FormData) {
   "use server";
@@ -17,8 +20,21 @@ async function joinWaitlist(formData: FormData) {
   await supabase
     .from("waitlist")
     .upsert({ email, created_at: new Date() }, { onConflict: "email" })
+  
+  // send notification email
+  try {
+    await resend.emails.send({
+      from: "Cadenza Waitlist <onboarding@resend.dev>",
+      to: ["james@cadenzahq.com"],
+      subject: "New Cadenza Waitlist Signup",
+      html: `<p><strong>${email}</strong> joined the Cadenza waitlist.</p>`,
+    });
+  } catch (err) {
+    console.error("Email notification failed", err);
+  }
 
   redirect("/?joined=true#waitlist");
+
 }
 
 export default async function Home({

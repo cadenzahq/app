@@ -28,3 +28,19 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+:root {
+  --bg: 249 250 251;
+  --card: 255 255 255;
+  --text: 17 24 39;
+  --muted: 107 114 128;
+  --border: 229 231 235;
+}
+
+.dark {
+  --bg: 17 24 39;
+  --card: 31 41 55;
+  --text: 243 244 246;
+  --muted: 156 163 175;
+  --border: 55 65 81;
+}

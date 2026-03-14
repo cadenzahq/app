@@ -1,151 +1,209 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { updateEvent, deleteEvent } from "@/app/(app)/admin/events/actions";
 import { Button } from "@/components/ui/Button";
+import { DeleteSubmitButton } from "./DeleteButton";
 
-interface Event {
-  id: string;
-  name: string;
-  event_type: string;
-  start_time: string;
-  end_time: string;
-  location: string | null;
-  description: string | null;
-  orchestra_id: string;
+interface Props {
+  event: any;
+  series: { id: string; name: string; season_id: string | null }[];
+  seasons: { id: string; name: string }[];
 }
 
-interface EventFormProps {
-  event?: Event;              // optional for create mode
-  orchestraId: string;        // required for create
-}
+export default function EditEventForm({ event, series, seasons }: Props) {
 
-export default function EditEventForm({
-  event,
-  orchestraId,
-}: EventFormProps) {
-  const supabase = createClient();
-  const router = useRouter();
+  const updateAction = updateEvent.bind(null, event.id);
+  const deleteAction = deleteEvent.bind(null, event.id);
 
-  const isEditMode = !!event;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const [name, setName] = useState(event?.name ?? "");
-  const [eventType, setEventType] = useState(event?.event_type ?? "");
-  const [startTime, setStartTime] = useState(
-    event?.start_time?.slice(0, 16) ?? ""
-  );
-  const [endTime, setEndTime] = useState(
-    event?.end_time?.slice(0, 16) ?? ""
-  );
-  const [location, setLocation] = useState(event?.location ?? "");
-  const [description, setDescription] = useState(event?.description ?? "");
-
-  async function handleSubmit(
-    e: React.FormEvent<HTMLFormElement>
-  ) {
-    e.preventDefault();
-
-    const payload = {
-      name,
-      event_type: eventType,
-      start_time: startTime,
-      end_time: endTime,
-      location: location || null,
-      description: description || null,
-    };
-
-    let error;
-
-    if (isEditMode) {
-      ({ error } = await supabase
-        .from("events")
-        .update(payload)
-        .eq("id", event!.id));
-    } else {
-      ({ error } = await supabase
-        .from("events")
-        .insert({
-          ...payload,
-          orchestra_id: orchestraId,
-        }));
-    }
-
-    if (!error) {
-      router.push("/admin/events");
-    } else {
-      alert(error.message);
-    }
-  }
+  const selectedSeries = series.find(s => s.id === event.series_id);
+  const seasonName =
+    seasons.find(s => s.id === selectedSeries?.season_id)?.name ?? "None";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <>
+      <form action={updateAction} className="space-y-5">
 
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="w-full border p-3 rounded"
-        placeholder="Event Name"
-        required
-      />
+        {/* Event Name */}
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-gray-600">
+            Event Name
+          </label>
+          <input
+            name="name"
+            defaultValue={event.name}
+            className="w-full border rounded-md p-3 focus:ring-2 focus:ring-purple-500"
+            required
+          />
+        </div>
 
-      <input
-        value={eventType}
-        onChange={(e) => setEventType(e.target.value)}
-        className="w-full border p-3 rounded"
-        placeholder="Event Type (rehearsal, concert, etc.)"
-        required
-      />
+        {/* Event Type */}
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-gray-600">
+            Event Type
+          </label>
+          <input
+            name="event_type"
+            defaultValue={event.event_type}
+            className="w-full border rounded-md p-3 focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
 
-      <input
-        type="datetime-local"
-        value={startTime}
-        onChange={(e) => setStartTime(e.target.value)}
-        className="w-full border p-3 rounded"
-        required
-      />
+        {/* Times */}
+        <div className="grid grid-cols-2 gap-3">
 
-      <input
-        type="datetime-local"
-        value={endTime}
-        onChange={(e) => setEndTime(e.target.value)}
-        className="w-full border p-3 rounded"
-        required
-      />
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-600">
+              Start Time
+            </label>
+            <input
+              type="datetime-local"
+              name="start_time"
+              defaultValue={event.start_time?.slice(0,16)}
+              className="w-full border rounded-md p-3 focus:ring-2 focus:ring-purple-500"
+              required
+            />
+          </div>
 
-      <input
-        value={location}
-        onChange={(e) => setLocation(e.target.value)}
-        className="w-full border p-3 rounded"
-        placeholder="Location"
-      />
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-600">
+              End Time
+            </label>
+            <input
+              type="datetime-local"
+              name="end_time"
+              defaultValue={event.end_time?.slice(0,16) ?? ""}
+              className="w-full border rounded-md p-3 focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
 
-      <textarea
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="w-full border p-3 rounded"
-        placeholder="Description"
-      />
+        </div>
 
-      {/* Buttons */}
-      <div className="grid grid-cols-2 gap-3 pt-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-          className="w-full"
-        >
-          Cancel
-        </Button>
+        {/* Location */}
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-gray-600">
+            Location
+          </label>
+          <input
+            name="location"
+            defaultValue={event.location ?? ""}
+            className="w-full border rounded-md p-3 focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
 
-        <Button
-          type="submit"
-          variant="primary"
-          className="w-full"
-        >
-          {isEditMode ? "Save Changes" : "Create Event"}
-        </Button>
+        {/* Description */}
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-gray-600">
+            Description
+          </label>
+          <textarea
+            name="description"
+            defaultValue={event.description ?? ""}
+            className="w-full border rounded-md p-3 focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
+
+        {/* Season (derived) */}
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-gray-600">
+            Season
+          </label>
+          <div className="border rounded-md p-3 bg-gray-50">
+            {seasonName}
+          </div>
+        </div>
+
+        {/* Series */}
+        <div className="space-y-1">
+
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-gray-600">
+              Series
+            </label>
+
+            <button
+              type="button"
+              className="text-sm text-purple-600 hover:underline"
+            >
+              + Create
+            </button>
+          </div>
+
+          <select
+            name="series_id"
+            defaultValue={event.series_id ?? ""}
+            className="w-full border rounded-md p-3"
+          >
+            <option value="">Select series (optional)</option>
+
+            {series.map(s => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+
+          </select>
+
+        </div>
+
+        {/* Buttons */}
+        <div className="grid grid-cols-2 gap-3 pt-4">
+          <Button type="button" variant="outline">
+            Cancel
+          </Button>
+
+          <Button type="submit" variant="primary">
+            Save Changes
+          </Button>
+        </div>
+
+      </form>
+
+      {/* Delete Section */}
+
+      <div className="border-t pt-6 mt-6">
+
+        {!showDeleteConfirm && (
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            Delete Event
+          </Button>
+        )}
+
+        {showDeleteConfirm && (
+
+          <div className="bg-red-50 border border-red-200 rounded-md p-4 mt-4 space-y-4">
+
+            <p className="text-sm text-gray-700">
+              Are you sure you want to delete this event? This action cannot be undone.
+            </p>
+
+            <div className="flex gap-3">
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancel
+              </Button>
+
+              <form action={deleteAction}>
+                <DeleteSubmitButton />
+              </form>
+
+            </div>
+
+          </div>
+
+        )}
+
       </div>
-    </form>
+    </>
   );
 }
