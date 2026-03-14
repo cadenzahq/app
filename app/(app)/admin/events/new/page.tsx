@@ -15,7 +15,11 @@ export default async function NewEventPage() {
         Create Event
       </h1>
 
-      <EditEventForm orchestraId={orchestra.id} />
+      <EditEventForm
+        event={null}
+        series={[]}
+        seasons={[]}
+      />
     </div>
   );
 }

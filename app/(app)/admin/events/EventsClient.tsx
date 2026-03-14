@@ -3,10 +3,10 @@
 import { useState } from "react";
 import EventModal from "@/components/admin/EventModal";
 import { formatEventDateTime, formatTimeRange } from "@/lib/utils/datetime";
-import type { Event } from "@/lib/types";
+import type { EventSummary } from "@/lib/types";
 
 interface EventsClientProps {
-  initialEvents: any[]; // or your Event type
+  initialEvents: EventSummary[];
   orchestraId: string;
 }
 
@@ -15,21 +15,21 @@ export default function EventsClient({
   orchestraId,
 }: EventsClientProps) {
 
-  const [events, setEvents] = useState<Event[]>(initialEvents);
+  const [events, setEvents] = useState<EventSummary[]>(initialEvents);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventSummary | null>(null);
 
   function openCreate() {
     setSelectedEvent(null);
     setModalOpen(true);
   }
 
-  function openEdit(event: Event) {
+  function openEdit(event: EventSummary) {
     setSelectedEvent(event);
     setModalOpen(true);
   }
 
-  function handleSaved(savedEvent: Event) {
+  function handleSaved(savedEvent: EventSummary) {
 
     const exists = events.find(e => e.id === savedEvent.id);
 

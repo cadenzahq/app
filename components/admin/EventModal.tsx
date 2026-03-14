@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Event } from "@/lib/types";
+import type { EventSummary } from "@/lib/types";
 
 import {
   utcToLocalInput,
@@ -10,22 +10,16 @@ import {
   addHours,
 } from "@/lib/utils/datetime";
 
-type Props = {
-  event: Event | null;
-  onClose: () => void;
-  onSaved: (event: Event) => void;
-};
-
 export default function EventModal({
   event,
   orchestraId,
   onClose,
   onSaved,
 }: {
-  event: Event | null;
+  event: EventSummary | null;
   orchestraId: string;
   onClose: () => void;
-  onSaved: (event: Event) => void;
+  onSaved: (event: EventSummary) => void;
 }) {
 
   const supabase = createClient();
@@ -41,10 +35,8 @@ export default function EventModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-
   /**
    * Sync form state when modal opens or event changes
-   * Prevents stale state and timezone bugs
    */
   useEffect(() => {
 
@@ -60,7 +52,6 @@ export default function EventModal({
 
     } else {
 
-      // creating new event → default start = now rounded, end = +2h
       const now = new Date();
 
       now.setMinutes(Math.ceil(now.getMinutes() / 15) * 15);
@@ -78,7 +69,6 @@ export default function EventModal({
     setError("");
 
   }, [event]);
-
 
   /**
    * Save handler
@@ -134,21 +124,18 @@ export default function EventModal({
         .single();
     }
 
-
     if (result.error) {
       setError(result.error.message);
       setSaving(false);
       return;
     }
 
-
     onSaved(result.data);
     onClose();
   }
 
-
   /**
-   * Auto-adjust end time when start changes (create mode only)
+   * Auto-adjust end time when start changes
    */
   function handleStartChange(value: string) {
 
@@ -158,7 +145,6 @@ export default function EventModal({
       setEndTime(addHours(value, 2));
     }
   }
-
 
   return (
 
@@ -170,13 +156,11 @@ export default function EventModal({
           {isEdit ? "Edit Event" : "Create Event"}
         </h2>
 
-
         {error && (
           <div className="text-red-600 text-sm mb-3">
             {error}
           </div>
         )}
-
 
         <div className="space-y-3">
 
@@ -187,14 +171,12 @@ export default function EventModal({
             onChange={(e) => setName(e.target.value)}
           />
 
-
           <input
             type="datetime-local"
             className="w-full border rounded p-2"
             value={startTime}
             onChange={(e) => handleStartChange(e.target.value)}
           />
-
 
           <input
             type="datetime-local"
@@ -203,7 +185,6 @@ export default function EventModal({
             min={startTime}
             onChange={(e) => setEndTime(e.target.value)}
           />
-
 
           <input
             className="w-full border rounded p-2"
@@ -214,7 +195,6 @@ export default function EventModal({
 
         </div>
 
-
         <div className="flex justify-end gap-2 mt-6">
 
           <button
@@ -224,7 +204,6 @@ export default function EventModal({
           >
             Cancel
           </button>
-
 
           <button
             onClick={handleSave}
