@@ -1,15 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Resend } from "resend";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function joinWaitlist(formData: FormData) {
   "use server";
 
-  const supabase = await createClient();
+  const supabase = supabaseAdmin;
   const email = formData.get("email") as string;
   const company = formData.get("company");
+  
 
   if (company) return; // bot submission
   if (!email) return;
@@ -17,18 +19,26 @@ async function joinWaitlist(formData: FormData) {
     redirect("/?error=invalid#waitlist");
   }
 
-  await supabase
-    .from("waitlist")
-    .upsert({ email, created_at: new Date() }, { onConflict: "email" })
-  
+const { data, error } = await supabase
+  .from("waitlist")
+  .upsert({ email, created_at: new Date() }, { onConflict: "email" });
+
+if (error) {
+  console.error("Waitlist insert failed:", error);
+} else {
+  console.log("Waitlist insert success:", data);
+}
+
   // send notification email
   try {
-    await resend.emails.send({
-      from: "Cadenza Waitlist <onboarding@resend.dev>",
+    const emailResult = await resend.emails.send({
+      from: "Cadenza Waitlist <info@cadenzahq.com>",
       to: ["james@cadenzahq.com"],
       subject: "New Cadenza Waitlist Signup",
       html: `<p><strong>${email}</strong> joined the Cadenza waitlist.</p>`,
     });
+console.log("Resend result:", emailResult);
+
   } catch (err) {
     console.error("Email notification failed", err);
   }
