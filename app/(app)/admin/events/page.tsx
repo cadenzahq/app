@@ -19,7 +19,6 @@ export default async function EventsPage() {
     redirect("/admin/login");
   }
 
-  // Validate user belongs to this orchestra
   const { data: membership } = await supabase
     .from("members")
     .select("id")
@@ -28,10 +27,8 @@ export default async function EventsPage() {
     .single();
 
   if (!membership) {
-    redirect("/dashboard"); // or 403 page
+    redirect("/dashboard");
   }
-
-  // (Optional: later add role check here)
 
   const { data: events, error } = await supabase
     .from("events")
@@ -45,7 +42,7 @@ export default async function EventsPage() {
 
   return (
     <EventsClient
-      initialEvents={events ?? []}
+      events={events ?? []}
       orchestraId={orchestra.id}
     />
   );

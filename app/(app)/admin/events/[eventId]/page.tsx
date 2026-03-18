@@ -7,6 +7,7 @@ import AttendanceTable from "./components/AttendanceTable"
 import SeriesEvents from "./components/SeriesEvents"
 import { Card } from "@/components/ui/Card"
 import { CardHeader } from "@/components/ui/CardHeader"
+import { revalidatePath } from "next/cache"
 
 type AttendanceMember = {
   member_id: string
@@ -124,13 +125,27 @@ export default async function EventPage({
     const memberId = formData.get("memberId") as string
     const status = formData.get("status") as string
 
-    await supabase
+    const { data, error } = await supabase
       .from("attendance")
-      .upsert({
-        member_id: memberId,
-        event_id: eventId,
-        status,
-      })
+      .upsert(
+        {
+          event_id: eventId,
+          member_id: memberId,
+          status,
+        },
+        {
+          onConflict: "event_id,member_id",
+        }
+      )
+      .select()
+      .single()
+
+    if (error) {
+      console.error("Attendance update failed:", error)
+      throw new Error("Failed to update attendance")
+    }
+
+     revalidatePath(`/events/${eventId}`)
   }
 
   return (

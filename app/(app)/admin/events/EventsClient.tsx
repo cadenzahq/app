@@ -1,117 +1,86 @@
 "use client";
 
-import { useState } from "react";
-import EventModal from "@/components/admin/EventModal";
+import Link from "next/link";
 import { formatEventDateTime, formatTimeRange } from "@/lib/utils/datetime";
 import type { EventSummary } from "@/lib/types";
 
 interface EventsClientProps {
-  initialEvents: EventSummary[];
+  events: EventSummary[];
   orchestraId: string;
 }
 
 export default function EventsClient({
-  initialEvents,
+  events,
   orchestraId,
 }: EventsClientProps) {
-
-  const [events, setEvents] = useState<EventSummary[]>(initialEvents);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<EventSummary | null>(null);
-
-  function openCreate() {
-    setSelectedEvent(null);
-    setModalOpen(true);
-  }
-
-  function openEdit(event: EventSummary) {
-    setSelectedEvent(event);
-    setModalOpen(true);
-  }
-
-  function handleSaved(savedEvent: EventSummary) {
-
-    const exists = events.find(e => e.id === savedEvent.id);
-
-    if (exists) {
-      setEvents(events.map(e =>
-        e.id === savedEvent.id ? savedEvent : e
-      ));
-    } else {
-      setEvents([...events, savedEvent]);
-    }
-  }
-
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
+    <div className="max-w-4xl mx-auto px-6 py-8">
 
-      <div className="flex justify-between items-center mb-6">
-
+      {/* Header */}
+      <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-semibold">
           Events
         </h1>
 
-        <button
-          onClick={openCreate}
-          className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
+        <Link
+          href={`/admin/events/new`}
+          className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
         >
           + Create Event
-        </button>
-
+        </Link>
       </div>
 
+      {/* Empty State */}
+      {events.length === 0 && (
+        <div className="text-gray-500 text-sm">
+          No events yet.
+        </div>
+      )}
 
-      <div className="space-y-3">
-
-        {events.map(event => (
-
+      {/* Event List */}
+      <div className="space-y-4">
+        {events.map((event) => (
           <div
             key={event.id}
-            className="border rounded-lg px-4 py-3 bg-white shadow-sm hover:shadow-md transition"
+            className="border rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition"
           >
+            <div className="flex justify-between items-start gap-4">
 
-            <div>
+              {/* Left Side */}
+              <div className="space-y-1">
+                <div className="text-lg font-semibold">
+                  {event.name}
+                </div>
 
-              <div className="font-semibold">
-                {event.name}
+                <div className="text-sm text-gray-500">
+                  {formatEventDateTime(event.start_time)}
+                </div>
+
+                <div className="text-sm text-gray-500">
+                  {formatTimeRange(event.start_time, event.end_time)}
+                </div>
+
+                {event.location && (
+                  <div className="text-sm text-gray-500">
+                    {event.location}
+                  </div>
+                )}
               </div>
 
-              <div className="text-gray-500 text-sm">
-                {formatEventDateTime(event.start_time)}
-              </div>
-
-              <div className="text-gray-500 text-sm">
-                {formatTimeRange(event.start_time, event.end_time)}
-              </div>
-
-              <div className="text-gray-500 text-sm">
-                {event.location}
+              {/* Right Side */}
+              <div className="flex flex-col items-end gap-2">
+                <Link
+                  href={`/admin/events/${event.id}/edit`}
+                  className="text-blue-600 text-sm hover:underline"
+                >
+                  Edit
+                </Link>
               </div>
 
             </div>
-
-            <button
-              onClick={() => openEdit(event)}
-              className="text-blue-600 hover:underline"
-            >
-              Edit
-            </button>
-
           </div>
-
         ))}
-
       </div>
-
-      {modalOpen && (
-        <EventModal
-          event={selectedEvent}
-          orchestraId={orchestraId}
-          onClose={() => setModalOpen(false)}
-          onSaved={handleSaved}
-        />
-      )}
-
     </div>
   );
 }

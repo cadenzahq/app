@@ -1,25 +1,31 @@
-import { redirect } from "next/navigation";
-import { getActiveOrchestraForUser } from "@/lib/orchestra";
-import EditEventForm from "@/components/admin/EditEventForm";
 import { createClient } from "@/lib/supabase/server";
+import { getActiveOrchestraForUser } from "@/lib/orchestra";
+import { redirect } from "next/navigation";
+import EditEventForm from "@/components/admin/EditEventForm";
 
 export default async function NewEventPage() {
   const supabase = await createClient();
-  const orchestra = await getActiveOrchestraForUser(supabase);
 
+  const orchestra = await getActiveOrchestraForUser(supabase);
   if (!orchestra) redirect("/admin/dashboard");
 
-  return (
-    <div className="max-w-3xl mx-auto p-10">
-      <h1 className="text-2xl font-semibold mb-6">
-        Create Event
-      </h1>
+  const { data: series } = await supabase
+    .from("event_series")
+    .select("id, name, season_id")
+    .eq("orchestra_id", orchestra.id)
+    .order("name");
 
-      <EditEventForm
-        event={null}
-        series={[]}
-        seasons={[]}
-      />
-    </div>
+  const { data: seasons } = await supabase
+    .from("seasons")
+    .select("id, name")
+    .eq("orchestra_id", orchestra.id)
+    .order("name");
+
+  return (
+    <EditEventForm
+      event={null}
+      series={series ?? []}
+      seasons={seasons ?? []}
+    />
   );
 }

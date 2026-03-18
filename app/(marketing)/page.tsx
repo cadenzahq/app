@@ -56,10 +56,10 @@ export default async function Home({
   const params = await searchParams;
 
   return (
-    <main className="min-h-screen text-slate-900">
+    <main className="min-h-screen bg-gray-50 text-gray-900">
 
       {/* HEADER */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-slate-200">
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
 
         <div className="max-w-5xl mx-auto flex items-center justify-between px-6 py-3">
 
@@ -82,9 +82,9 @@ export default async function Home({
       </header>
 
       {/* HERO */}
-      <section className="text-center pt-12 pb-12 px-6">
+      <section className="text-center pt-12 pb-12 px-6 bg-gray-50">
 
-        <h1 className="text-[96px] md:text-[120px] font-bold tracking-tight">
+        <h1 className="text-[96px] md:text-[120px] font-bold tracking-tight text-gray-900">
           Cadenza
         </h1>
 
@@ -100,7 +100,7 @@ export default async function Home({
 
           <a
             href="#waitlist"
-            className="px-6 py-2 rounded-md bg-slate-900 text-white hover:bg-slate-700"
+            className="px-6 py-2 rounded-md bg-gray-900 text-white hover:bg-gray-800"
           >
             Join the Waitlist
           </a>
@@ -115,34 +115,34 @@ export default async function Home({
 
         <div className="max-w-2xl mx-auto grid gap-4">
 
-          <div className="p-4 rounded-lg border border-slate-200 bg-white shadow-sm hover:shadow">
-            <h3 className="font-semibold text-lg">
+          <div className="p-4 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition">
+            <h3 className="font-semibold text-lg text-gray-900">
               Event Scheduling
             </h3>
 
-            <p className="text-slate-600 mt-2">
+            <p className="text-gray-600 mt-2">
               Plan rehearsals, concerts, and services with tools designed
               specifically for ensembles.
             </p>
           </div>
 
-          <div className="p-4 rounded-lg border border-slate-200 bg-white shadow-sm hover:shadow">
-            <h3 className="font-semibold text-lg">
+          <div className="p-4 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition">
+            <h3 className="font-semibold text-lg text-gray-900">
               Personnel Management
             </h3>
 
-            <p className="text-slate-600 mt-2">
+            <p className="text-gray-600 mt-2">
               Track orchestra members, roles, and participation
               across every performance.
             </p>
           </div>
 
-          <div className="p-4 rounded-lg border border-slate-200 bg-white shadow-sm hover:shadow">
-            <h3 className="font-semibold text-lg">
+          <div className="p-4 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition">
+            <h3 className="font-semibold text-lg text-gray-900">
               Communication
             </h3>
 
-            <p className="text-slate-600 mt-2">
+            <p className="text-gray-600 mt-2">
               Send announcements, invitations, and updates
               directly to your musicians.
             </p>
@@ -180,7 +180,7 @@ export default async function Home({
               name="email"
               required
               placeholder="your@email.com"
-              className="flex-1 px-4 py-2 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400"
+              className="flex-1 px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400"
             />
 
             <input
@@ -191,7 +191,7 @@ export default async function Home({
 
             <button
               type="submit"
-              className="px-5 py-2 rounded-md bg-slate-900 text-white hover:bg-slate-700"
+              className="px-5 py-2 rounded-md bg-gray-900 text-white hover:bg-gray-800"
             >
               Join
             </button>
