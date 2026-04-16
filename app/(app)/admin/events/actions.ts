@@ -5,21 +5,65 @@ import { redirect } from "next/navigation";
 import { getActiveOrchestraForUser } from "@/lib/orchestra";
 
 /*
-Centralized helper so create + update stay consistent
+Normalization helpers (single source of truth)
+*/
+function normalizeString(value: FormDataEntryValue | null): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeRequiredString(value: FormDataEntryValue | null): string {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error("Missing required field");
+  }
+  return value.trim();
+}
+
+function normalizeDate(value: FormDataEntryValue | null): string | null {
+  if (typeof value !== "string" || value.trim().length === 0) return null;
+  return new Date(value).toISOString();
+}
+
+/*
+Centralized event parser (CREATE + UPDATE)
 */
 function parseEventForm(formData: FormData) {
-  const start = formData.get("start_time") as string | null;
-  const end = formData.get("end_time") as string | null;
-
   return {
-    name: formData.get("name") as string,
-    event_type: (formData.get("event_type") as string) || null,
-    start_time: start ? new Date(start).toISOString() : null,
-    end_time: end ? new Date(end).toISOString() : null,
-    location: (formData.get("location") as string) || null,
-    description: (formData.get("description") as string) || null,
-    series_id: (formData.get("series_id") as string) || null,
+    name: normalizeRequiredString(formData.get("name")),
+    event_type: normalizeString(formData.get("event_type")),
+    start_time: normalizeDate(formData.get("start_time")),
+    end_time: normalizeDate(formData.get("end_time")),
+    location: normalizeString(formData.get("location")),
+    description: normalizeString(formData.get("description")),
+    notes: normalizeString(formData.get("notes")), // ✅ NEW (correct place)
+    series_id: normalizeRequiredString(formData.get("series_id")),
   };
+}
+
+/*
+Shared: Validate + derive series/season
+*/
+async function resolveSeriesContext(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  seriesId: string,
+  orchestraId: string
+) {
+  const { data, error } = await supabase
+    .from("event_series")
+    .select("season_id, orchestra_id")
+    .eq("id", seriesId)
+    .single();
+
+  if (error || !data) {
+    throw new Error("Invalid series");
+  }
+
+  if (data.orchestra_id !== orchestraId) {
+    throw new Error("Series does not belong to orchestra");
+  }
+
+  return data;
 }
 
 /*
@@ -33,12 +77,17 @@ export async function createEvent(formData: FormData) {
 
   const eventData = parseEventForm(formData);
 
-  const { error } = await supabase
-    .from("events")
-    .insert({
-      ...eventData,
-      orchestra_id: orchestra.id,
-    });
+  const series = await resolveSeriesContext(
+    supabase,
+    eventData.series_id,
+    orchestra.id
+  );
+
+  const { error } = await supabase.from("events").insert({
+    ...eventData,
+    orchestra_id: orchestra.id,
+    season_id: series.season_id,
+  });
 
   if (error) {
     throw new Error(error.message);
@@ -61,9 +110,19 @@ export async function updateEvent(
 
   const eventData = parseEventForm(formData);
 
+  const series = await resolveSeriesContext(
+    supabase,
+    eventData.series_id,
+    orchestra.id
+  );
+
   const { error } = await supabase
     .from("events")
-    .update(eventData)
+    .update({
+      ...eventData,
+      season_id: series.season_id,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", eventId)
     .eq("orchestra_id", orchestra.id);
 

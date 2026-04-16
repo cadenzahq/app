@@ -5,15 +5,19 @@ type Member = {
   member_id: string
   full_name: string
   instrument: string | null
-  attendance_status: string | null
+  instrument_sort_order: number
+  section: string
+  section_sort_order: number
+  attendance_status: string
 }
 
 type Props = {
   groupedMembers: [string, Member[]][]
   action: (formData: FormData) => Promise<void>
+  isLocked: boolean
 }
 
-export default function AttendanceTable({ groupedMembers, action }: Props) {
+export default function AttendanceTable({ groupedMembers, action, isLocked }: Props) {
 
   return (
     <div>
@@ -22,7 +26,7 @@ export default function AttendanceTable({ groupedMembers, action }: Props) {
 
         <thead>
           <tr className="border-b">
-            <th className="text-left py-2 w-[40%]">Name</th>
+            <th className="text-left py-2 w-[30%]">Name</th>
             <th className="text-left py-2 w-[20%]">Instrument</th>
             <th className="text-left py-2 w-[30%]">Status</th>
           </tr>
@@ -49,6 +53,7 @@ export default function AttendanceTable({ groupedMembers, action }: Props) {
                   instrument={member.instrument}
                   initialStatus={member.attendance_status}
                   action={action}
+                  isLocked={isLocked}
                 />
               ))}
 

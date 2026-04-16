@@ -7,8 +7,9 @@ type Props = {
   memberId: string
   memberName: string
   instrument: string | null
-  initialStatus: string | null
+  initialStatus: string
   action: (formData: FormData) => Promise<void>
+  isLocked: boolean
 }
 
 const ATTENDANCE_OPTIONS = [
@@ -23,6 +24,7 @@ const STATUS_STYLES: Record<string, string> = {
   late: "bg-yellow-50 border-yellow-400 text-yellow-700",
   absent: "bg-red-50 border-red-400 text-red-700",
   excused: "bg-gray-100 border-gray-400 text-gray-600",
+  "": "border-gray-300"
 }
 
 export default function AttendanceRow({
@@ -30,19 +32,23 @@ export default function AttendanceRow({
   memberName,
   instrument,
   initialStatus,
-  action
+  action,
+  isLocked
 }: Props) {
 
   const router = useRouter()
 
-  const [status, setStatus] = useState(initialStatus ?? "")
+  const [status, setStatus] = useState(
+    initialStatus === "unmarked" ? "" : initialStatus
+  )
   const [dirty, setDirty] = useState(false)
   const [saved, setSaved] = useState(false)
 
   const [isPending, startTransition] = useTransition()
 
   function handleSave() {
-
+    if (isLocked) return;
+    
     const formData = new FormData()
     formData.append("memberId", memberId)
     formData.append("status", status)
@@ -54,8 +60,6 @@ export default function AttendanceRow({
       await action(formData)
 
       setSaved(true)
-
-      router.refresh()
 
       setTimeout(() => {
         setSaved(false)
@@ -80,6 +84,7 @@ export default function AttendanceRow({
             setDirty(true)
             setSaved(false)
           }}
+          disabled={isLocked}
           className={`mr-2 border rounded px-2 py-1 text-sm
             ${STATUS_STYLES[status] ?? "border-gray-300"}
           `}
@@ -97,7 +102,7 @@ export default function AttendanceRow({
 
         <button
           onClick={handleSave}
-          disabled={!dirty || isPending}
+          disabled={isLocked || !dirty || isPending}
           className={`px-2 py-1 rounded text-xs font-medium ${
             (!dirty || isPending)
               ? "bg-gray-300 text-gray-500"

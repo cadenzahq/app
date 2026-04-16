@@ -9,12 +9,6 @@ export default async function NewEventPage() {
   const orchestra = await getActiveOrchestraForUser(supabase);
   if (!orchestra) redirect("/admin/dashboard");
 
-  const { data: series } = await supabase
-    .from("event_series")
-    .select("id, name, season_id")
-    .eq("orchestra_id", orchestra.id)
-    .order("name");
-
   const { data: seasons } = await supabase
     .from("seasons")
     .select("id, name")
@@ -24,8 +18,8 @@ export default async function NewEventPage() {
   return (
     <EditEventForm
       event={null}
-      series={series ?? []}
       seasons={seasons ?? []}
+      orchestraId={orchestra.id}
     />
   );
 }

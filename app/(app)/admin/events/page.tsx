@@ -31,8 +31,8 @@ export default async function EventsPage() {
   }
 
   const { data: events, error } = await supabase
-    .from("events")
-    .select("*")
+    .from("events_list_v")
+    .select("id, name, start_time, end_time, location")
     .eq("orchestra_id", orchestra.id)
     .order("start_time", { ascending: true });
 
@@ -40,10 +40,13 @@ export default async function EventsPage() {
     console.error("REAL ERROR:", error.message);
   }
 
+  const eventsData = events ?? [];
+  const isEmpty = eventsData.length === 0;
+
   return (
     <EventsClient
-      events={events ?? []}
-      orchestraId={orchestra.id}
+      events={eventsData}
+      isEmpty={isEmpty}
     />
   );
 }

@@ -23,7 +23,7 @@ export default function NextEventCard({ event, rsvpCounts}: NextEventCardProps) 
             <CardHeader title="Next Event" />
 
             <div className="flex flex-col items-start gap-4 py-6">
-                <p className="text-sm text-gray-500 mb-4">
+                <p className="text-sm text-navy mb-4">
                 No upcoming events.
                 </p>
 
@@ -71,7 +71,7 @@ export default function NextEventCard({ event, rsvpCounts}: NextEventCardProps) 
     return (
     <Card>
         <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">
+        <h2 className="text-lg font-semibold text-midnight">
             Next Event
         </h2>
 
@@ -83,10 +83,10 @@ export default function NextEventCard({ event, rsvpCounts}: NextEventCardProps) 
         </div>
 
         <div className="space-y-2 mb-6">
-            <p className="font-medium text-gray-900">{event.name}</p>
-            <p className="text-sm text-gray-500">{formattedDate}</p>
+            <p className="font-medium text-midnight">{event.name}</p>
+            <p className="text-sm text-navy">{formattedDate}</p>
             {event.location && (
-                <p className="text-sm text-gray-500">{event.location}</p>
+                <p className="text-sm text-navy">{event.location}</p>
             )}
         </div>
 
@@ -122,7 +122,7 @@ export default function NextEventCard({ event, rsvpCounts}: NextEventCardProps) 
             </div>
         )}
 
-        <hr className="my-3 border-gray-200" />
+        <hr className="my-3 border-navy/20" />
 
         <div className="grid grid-cols-2 gap-3">
             <Link href={eventUrl}>

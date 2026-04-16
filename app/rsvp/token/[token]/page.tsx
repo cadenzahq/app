@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { submitRSVP } from "./actions";
 
 export default async function RSVPPage({
   params,
@@ -10,14 +9,9 @@ export default async function RSVPPage({
 
   const supabase = await createClient();
 
-  // Load RSVP record
   const { data: rsvp } = await supabase
-    .from("rsvps")
-    .select(`
-      *,
-      event:events(*),
-      member:members(*)
-    `)
+    .from("event_member_rsvp")
+    .select("*")
     .eq("token", token)
     .single();
 
@@ -29,66 +23,139 @@ export default async function RSVPPage({
     );
   }
 
-  const action = submitRSVP.bind(null, token);
+  function formatStatus(status: string) {
+    switch (status) {
+      case "yes":
+        return "Attending";
+      case "maybe":
+        return "Maybe";
+      case "no":
+        return "Not Attending";
+      default:
+        return status;
+    }
+  }
 
   return (
-    <div style={containerStyle}>
-      <h1>RSVP</h1>
+    <div style={pageStyle}>
+      <div style={cardStyle}>
+        <div style={headerStyle}>
+          <h1 style={logoStyle}>CADENZA</h1>
+          <p style={taglineStyle}>Orchestra Management System</p>
+        </div>
 
-      <p>
-        Hello {rsvp.member.first_name},
-      </p>
+        <div style={contentStyle}>
+          <p>Hello {rsvp.first_name},</p>
 
-      <h2>{rsvp.event.name}</h2>
+          <div style={eventBoxStyle}>
+            <p style={eventNameStyle}>{rsvp.event_name}</p>
+            <p style={eventMetaStyle}>
+              {new Date(rsvp.event_start_time).toLocaleString()}
+            </p>
+            <p style={eventMetaStyle}>{rsvp.event_location}</p>
+          </div>
 
-      <p>
-        {new Date(rsvp.event.start_time).toLocaleString()}
-      </p>
+          {rsvp.responded_at ? (
+            <div style={confirmationBoxStyle}>
+              <p style={confirmationTitleStyle}>
+                ✅ RSVP received
+              </p>
+              <p style={confirmationTextStyle}>
+                You’re marked as{" "}
+                <strong>{formatStatus(rsvp.status)}</strong>
+              </p>
+            </div>
+          ) : (
+            <div style={{ marginTop: 20 }}>
+              <p>Please respond using the email links.</p>
+            </div>
+          )}
+        </div>
 
-      <p>
-        {rsvp.event.location}
-      </p>
-
-      <form action={action}>
-        <select name="status" style={selectStyle}>
-          <option value="Attending">Attending</option>
-          <option value="Maybe">Maybe</option>
-          <option value="Absent">Absent</option>
-        </select>
-
-        <br /><br />
-
-        <button type="submit" style={buttonStyle}>
-          Submit RSVP
-        </button>
-      </form>
-
-      {rsvp.responded_at && (
-        <p style={{ marginTop: 20, color: "green" }}>
-          You have already responded.
-        </p>
-      )}
+        <div style={footerStyle}>
+          Sent via Cadenza Orchestra Management
+        </div>
+      </div>
     </div>
   );
 }
 
-const containerStyle = {
-  padding: "40px",
+const pageStyle = {
+  backgroundColor: "#f4f4f7",
+  minHeight: "100vh",
+  padding: "40px 20px",
+};
+
+const cardStyle = {
   maxWidth: "500px",
   margin: "0 auto",
+  backgroundColor: "#ffffff",
+  borderRadius: "10px",
+  overflow: "hidden",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
 };
 
-const selectStyle = {
-  padding: "8px",
-  fontSize: "16px",
+const headerStyle = {
+  backgroundColor: "#111827",
+  padding: "20px",
+  textAlign: "center" as const,
 };
 
-const buttonStyle = {
-  padding: "10px 16px",
-  fontSize: "16px",
-  backgroundColor: "#333",
-  color: "white",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer",
+const logoStyle = {
+  color: "#ffffff",
+  margin: 0,
+  letterSpacing: "2px",
+};
+
+const taglineStyle = {
+  color: "#9ca3af",
+  fontSize: "12px",
+  marginTop: "4px",
+};
+
+const contentStyle = {
+  padding: "24px",
+};
+
+const eventBoxStyle = {
+  marginTop: "16px",
+  padding: "16px",
+  backgroundColor: "#f9fafb",
+  borderRadius: "8px",
+};
+
+const eventNameStyle = {
+  fontWeight: 600,
+  marginBottom: "6px",
+};
+
+const eventMetaStyle = {
+  fontSize: "14px",
+  color: "#6b7280",
+};
+
+const confirmationBoxStyle = {
+  marginTop: "24px",
+  padding: "16px",
+  backgroundColor: "#ecfdf5",
+  borderRadius: "8px",
+  border: "1px solid #bbf7d0",
+};
+
+const confirmationTitleStyle = {
+  color: "#047857",
+  fontWeight: 600,
+  marginBottom: "6px",
+};
+
+const confirmationTextStyle = {
+  color: "#065f46",
+};
+
+const footerStyle = {
+  padding: "12px",
+  textAlign: "center" as const,
+  fontSize: "12px",
+  color: "#6b7280",
+  backgroundColor: "#f9fafb",
 };

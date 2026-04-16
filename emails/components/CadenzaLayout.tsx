@@ -26,7 +26,12 @@ export default function CadenzaLayout({
 
           {/* Header */}
           <Section style={header}>
-            <Text style={logo}>CADENZA</Text>
+            <Img
+              src="https://cadenzahq.com/branding/Cadenza-logo-email.png"
+              width="120"
+              alt="Cadenza"
+              style={{ margin: "0 auto" }}
+            />
             <Text style={tagline}>
               Orchestra Management System
             </Text>
@@ -50,45 +55,44 @@ export default function CadenzaLayout({
   );
 }
 
+//
+// 🎨 Styles (Cadenza-aligned, email-safe)
+//
+
 const body = {
-  backgroundColor: "#f4f4f7",
+  backgroundColor: "#f3f4f6", // softer gray (better than ivory)
   fontFamily: "Helvetica, Arial, sans-serif",
+  padding: "20px 0",
 };
 
 const container = {
   backgroundColor: "#ffffff",
   margin: "0 auto",
-  padding: "0",
   maxWidth: "600px",
-  borderRadius: "8px",
+  borderRadius: "10px",
   overflow: "hidden",
+  border: "1px solid #e5e7eb",
 };
 
 const header = {
-  backgroundColor: "#111827",
-  padding: "20px",
+  backgroundColor: "#0F172A", // midnight
+  padding: "24px",
   textAlign: "center" as const,
 };
 
-const logo = {
-  color: "#ffffff",
-  fontSize: "24px",
-  fontWeight: "bold",
-  letterSpacing: "3px",
-};
-
 const tagline = {
-  color: "#9ca3af",
+  color: "#cbd5f5", // softened gold substitute (email-safe)
   fontSize: "12px",
+  marginTop: "6px",
 };
 
 const content = {
-  padding: "30px",
+  padding: "28px",
 };
 
 const footer = {
   backgroundColor: "#f9fafb",
-  padding: "15px",
+  padding: "16px",
   textAlign: "center" as const,
 };
 

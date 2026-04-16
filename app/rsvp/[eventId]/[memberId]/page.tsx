@@ -6,301 +6,133 @@ export default async function RSVPPage({
 }: {
   params: Promise<{ eventId: string; memberId: string }>;
 }) {
-
-  const supabase = await createClient();
-  
   const { eventId, memberId } = await params;
+  const supabase = await createClient();
 
-  // Get event info
+  // ✅ Event
   const { data: event } = await supabase
     .from("events")
-    .select("*")
+    .select("id, name, start_time, location")
     .eq("id", eventId)
     .single();
 
-  // Get member info
+  if (!event) {
+    return <div className="p-6">Event not found</div>;
+  }
+
+  // ✅ Member
   const { data: member } = await supabase
     .from("members")
-    .select("*")
+    .select("id, display_name")
     .eq("id", memberId)
     .single();
 
-  // Get attendance record
-  const { data: attendance } = await supabase
-    .from("attendance")
-    .select("*")
+  if (!member) {
+    return <div className="p-6">Member not found</div>;
+  }
+
+  // ✅ RSVP (canonical source)
+  const { data: rsvp } = await supabase
+    .from("rsvps")
+    .select("status")
     .eq("event_id", eventId)
     .eq("member_id", memberId)
     .maybeSingle();
 
-  const currentStatus = attendance?.status || "No Response";
+  const currentStatus = rsvp?.status ?? "pending";
 
-  // Get attendance summary
-  const { data: allAttendance } = await supabase
-    .from("attendance")
-    .select("status")
-    .eq("event_id", eventId);
+  // ✅ RSVP Counts (from DB, NOT UI)
+  const { data: counts } = await supabase
+    .from("rsvp_counts_v")
+    .select("*")
+    .eq("event_id", eventId)
+    .maybeSingle();
 
-  const summary = {
-    attending: 0,
+  const summary = counts ?? {
+    yes: 0,
     maybe: 0,
-    absent: 0,
-    noResponse: 0
+    no: 0,
+    pending: 0,
   };
 
-  allAttendance?.forEach(record => {
+  return (
+    <div className="bg-ivory min-h-screen px-4 py-8">
+      <div className="max-w-xl mx-auto bg-white border border-navy/20 rounded-xl p-6 space-y-6">
 
-    if (record.status === "Attending") summary.attending++;
-    else if (record.status === "Maybe") summary.maybe++;
-    else if (record.status === "Absent") summary.absent++;
-    else summary.noResponse++;
-
-  });
-
-    return (
-
-        <div style={pageBackgroundStyle}>
-
-            <div style={containerStyle}>
-
-                {/* Header */}
-
-                <div style={headerContainerStyle}>
-
-                    <h1 style={eventTitleStyle}>
-                    {event.name}
-                    </h1>
-
-                    <div style={eventMetaStyle}>
-
-                    <span>{formatDate(event.start_time)}</span>
-
-                    <span style={separatorStyle}>•</span>
-
-                    <span>{event.event_type}</span>
-
-                    <span style={separatorStyle}>•</span>
-
-                    <span>{event.location}</span>
-
-                    </div>
-
-                </div>
-
-
-                {/* Member identity */}
-
-                <div style={memberCardStyle}>
-
-                    <div style={memberNameStyle}>
-                    {member.first_name} {member.last_name}
-                    </div>
-
-                    <div style={memberInstrumentStyle}>
-                    {member.instrument}
-                    </div>
-
-                </div>
-
-
-                {/* RSVP Card */}
-
-                <div style={rsvpCardStyle}>
-
-                    <div style={cardTitleStyle}>
-                    Your RSVP
-                    </div>
-
-                    <RSVPForm
-                    eventId={eventId}
-                    memberId={memberId}
-                    initialStatus={currentStatus}
-                    />
-
-                </div>
-
-
-                {/* Attendance Summary */}
-
-                <div style={summaryCardStyle}>
-
-                    <div style={summaryTitleStyle}>
-                    Attendance
-                    </div>
-
-                    <div style={summaryRowStyle}>
-
-                        <SummaryPill
-                            label="Attending"
-                            count={summary.attending}
-                            color="#16a34a"
-                            bg="#dcfce7"
-                        />
-
-                        <SummaryPill
-                            label="Maybe"
-                            count={summary.maybe}
-                            color="#ca8a04"
-                            bg="#fef9c3"
-                        />
-
-                        <SummaryPill
-                            label="Absent"
-                            count={summary.absent}
-                            color="#dc2626"
-                            bg="#fee2e2"
-                        />
-
-                    </div>
-
-                </div>
-
-            </div>
-
+        {/* Event */}
+        <div>
+          <h1 className="text-2xl font-semibold text-midnight">
+            {event.name}
+          </h1>
+          <p className="text-sm text-navy">
+            {new Date(event.start_time).toLocaleString()}
+          </p>
+          {event.location && (
+            <p className="text-sm text-navy">{event.location}</p>
+          )}
         </div>
 
-    );
+        {/* Member */}
+        <div className="bg-ivory border border-navy/20 rounded-lg p-4">
+          <p className="text-sm text-navy">Responding as</p>
+          <p className="font-medium text-midnight">
+            {member.display_name}
+          </p>
+        </div>
+
+        {/* RSVP */}
+        <div>
+          <h2 className="text-sm font-medium text-navy mb-2">
+            Your RSVP
+          </h2>
+
+          <RSVPForm
+            eventId={eventId}
+            memberId={memberId}
+            initialStatus={currentStatus}
+          />
+        </div>
+
+        {/* Summary */}
+        <div>
+          <h2 className="text-sm font-medium text-navy mb-2">
+            Current Responses
+          </h2>
+
+          <div className="flex gap-2 flex-wrap">
+            <SummaryPill label="Attending" count={summary.yes} color="green" />
+            <SummaryPill label="Maybe" count={summary.maybe} color="yellow" />
+            <SummaryPill label="Not Attending" count={summary.no} color="red" />
+            <SummaryPill label="Pending" count={summary.pending} color="gray" />
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
 }
 
-function formatDate(dateString: string) {
-
-  const date = new Date(dateString);
-
-  return date.toLocaleString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  });
-
-}
+/* ---------- UI Helpers ---------- */
 
 function SummaryPill({
   label,
   count,
   color,
-  bg
 }: {
   label: string;
   count: number;
-  color: string;
-  bg: string;
+  color: "green" | "yellow" | "red" | "gray";
 }) {
+  const styles = {
+    green: "bg-green-100 text-green-700",
+    yellow: "bg-yellow-100 text-yellow-700",
+    red: "bg-red-100 text-red-700",
+    gray: "bg-gray-100 text-gray-700",
+  };
 
   return (
-
-    <div
-      style={{
-        padding: "8px 12px",
-        borderRadius: "999px",
-        backgroundColor: bg,
-        color,
-        fontSize: "14px",
-        fontWeight: "500"
-      }}
-    >
+    <div className={`px-3 py-1 rounded-full text-sm ${styles[color]}`}>
       {count} {label}
     </div>
-
   );
-
 }
-
-const metaStyle = {
-  color: "#666",
-  marginBottom: "20px"
-};
-
-const memberStyle = {
-  marginBottom: "20px",
-  fontWeight: "500"
-};
-
-const summaryStyle = {
-  marginTop: "20px",
-  fontSize: "14px",
-  color: "#666"
-};
-
-const pageBackgroundStyle = {
-  backgroundColor: "#f9fafb",
-  minHeight: "100vh",
-  padding: "40px 20px"
-};
-
-const containerStyle = {
-  maxWidth: "600px",
-  margin: "0 auto",
-  backgroundColor: "white",
-  borderRadius: "12px",
-  border: "1px solid #e5e7eb",
-  padding: "32px"
-};
-
-const headerContainerStyle = {
-  marginBottom: "28px"
-};
-
-const eventTitleStyle = {
-  fontSize: "28px",
-  fontWeight: "600",
-  marginBottom: "6px"
-};
-
-const eventMetaStyle = {
-  display: "flex",
-  gap: "6px",
-  color: "#6b7280",
-  fontSize: "14px"
-};
-
-const separatorStyle = {
-  color: "#9ca3af"
-};
-
-const memberCardStyle = {
-  padding: "16px",
-  backgroundColor: "#f9fafb",
-  borderRadius: "8px",
-  border: "1px solid #e5e7eb",
-  marginBottom: "24px"
-};
-
-const memberNameStyle = {
-  fontWeight: "600",
-  fontSize: "16px"
-};
-
-const memberInstrumentStyle = {
-  fontSize: "14px",
-  color: "#6b7280"
-};
-
-const rsvpCardStyle = {
-  padding: "20px",
-  borderRadius: "10px",
-  border: "1px solid #e5e7eb",
-  marginBottom: "20px"
-};
-
-const cardTitleStyle = {
-  fontWeight: "600",
-  marginBottom: "12px"
-};
-
-const summaryCardStyle = {
-  padding: "20px",
-  borderRadius: "10px",
-  border: "1px solid #e5e7eb"
-};
-
-const summaryTitleStyle = {
-  fontWeight: "600",
-  marginBottom: "12px"
-};
-
-const summaryRowStyle = {
-  display: "flex",
-  gap: "8px"
-};

@@ -15,9 +15,9 @@ export default async function EditEventPage({ params }: PageProps) {
 
   if (!orchestra) redirect("/admin/dashboard");
 
-  const [eventRes, seriesRes, seasonsRes] = await Promise.all([
+  const [eventRes, seasonsRes] = await Promise.all([
     supabase
-      .from("events")
+      .from("events_with_meta") // ✅ USE VIEW
       .select(`
         id,
         name,
@@ -26,17 +26,13 @@ export default async function EditEventPage({ params }: PageProps) {
         end_time,
         location,
         description,
-        series_id
+        notes,
+        series_id,
+        season_id
       `)
       .eq("id", eventId)
       .eq("orchestra_id", orchestra.id)
       .maybeSingle(),
-
-    supabase
-      .from("event_series")
-      .select("id, name, season_id")
-      .eq("orchestra_id", orchestra.id)
-      .order("name"),
 
     supabase
       .from("seasons")
@@ -45,10 +41,7 @@ export default async function EditEventPage({ params }: PageProps) {
       .order("name"),
   ]);
 
-console.log("seriesRes:", seriesRes);
-
   const event = eventRes.data;
-  const series = seriesRes.data ?? [];
   const seasons = seasonsRes.data ?? [];
 
   if (!event) {
@@ -56,16 +49,10 @@ console.log("seriesRes:", seriesRes);
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-10">
-      <h1 className="text-2xl font-semibold mb-6">
-        Edit Event
-      </h1>
-
-      <EditEventForm
-        event={event}
-        series={series}
-        seasons={seasons}
-      />
-    </div>
+    <EditEventForm
+      event={event}
+      seasons={seasons}
+      orchestraId={orchestra.id}
+    />
   );
 }

@@ -1,40 +1,24 @@
-import UserMenu from './UserMenu'
 import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
-import OrchestraSwitcher from './OrchestraSwitcher'
+import { getUserContext } from '@/lib/user-context'
+import { getNavigation } from '@/lib/navigation'
+import HeaderUI from './HeaderUI'
 
 export default async function Header() {
   const supabase = await createClient()
+  const cookieStore = await cookies()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const context = await getUserContext()
 
-  if (!user) {
-    return (
-      <header className="flex items-center justify-between px-6 py-4 border-b bg-white">
-        <div className="text-lg font-semibold">Cadenza</div>
-
-        <nav className="flex items-center gap-6">
-          <a href="/dashboard">Dashboard</a>
-          <a href="/rehearsals">Rehearsals</a>
-          <a href="/members">Members</a>
-        </nav>
-      </header>
-    )
+  // Not logged in → no header (cleaner for login/reset pages)
+  if (!context.user) {
+    return null
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('id', user.id)
-    .single()
+  // Navigation
+  const navItems = getNavigation(context.navigationRole)
 
-  const displayName = profile?.full_name || user.email
-  
-  const cookieStore = await cookies()
-  const activeOrchestraId = cookieStore.get('active_orchestra_id')?.value
-
+  // Memberships (for switcher)
   const { data } = await supabase
     .from('members')
     .select(`
@@ -44,7 +28,7 @@ export default async function Header() {
         name
       )
     `)
-    .eq('user_id', user.id)
+    .eq('user_id', context.user.id)
 
   const memberships =
     (data ?? []).map((m) => ({
@@ -54,30 +38,19 @@ export default async function Header() {
         : m.orchestras,
     })) ?? []
 
-  let resolvedActiveOrchestraId = activeOrchestraId
+  const activeOrchestraId =
+    cookieStore.get('active_orchestra_id')?.value
 
-  if (!resolvedActiveOrchestraId && memberships.length > 0) {
-    resolvedActiveOrchestraId = memberships[0].orchestra_id
-  }
+  // User display name (quick + safe fallback)
+  const displayName =
+    context.user.email ?? 'User'
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 border-b bg-white">
-      <div className="text-lg font-semibold">Cadenza</div>
-
-      <nav className="flex items-center gap-6">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/events">Events</a>
-        <a href="/members">Members</a>
-
-        {memberships && memberships.length > 0 && (
-        <OrchestraSwitcher
-            memberships={memberships}
-            activeOrchestraId={resolvedActiveOrchestraId}
-        />
-        )}
-
-        <UserMenu userName={displayName} />
-      </nav>
-    </header>
+    <HeaderUI
+      navItems={navItems}
+      userName={displayName}
+      memberships={memberships}
+      activeOrchestraId={activeOrchestraId}
+    />
   )
 }

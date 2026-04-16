@@ -1,193 +1,123 @@
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
-import { getActiveOrchestraForUser } from '@/lib/orchestra'
+import { getActiveOrchestraForUser } from "@/lib/orchestra";
+import { redirect } from "next/navigation";
+import { createMember } from "../actions";
+import Link from "next/link";
 
-export default async function MembersPage() {
-
+export default async function NewMemberPage() {
   const supabase = await createClient();
-  const activeOrchestraId = await getActiveOrchestraForUser(supabase)
+  const orchestra = await getActiveOrchestraForUser(supabase);
 
-  if (!activeOrchestraId) {
-    return <div style={containerStyle}>No orchestra selected.</div>;
-  }
+  if (!orchestra) redirect("/admin/dashboard");
 
-  const { data: members } = await supabase
-    .from("members")
-    .select("*")
-    .eq("orchestra_id", activeOrchestraId)
-    .eq("is_active", true)
-    .order("last_name", { ascending: true });
-
-  async function addMember(formData: FormData) {
-    "use server";
-
-    const supabase = await createClient();
-    const activeOrchestraId = await getActiveOrchestraForUser(supabase);
-
-    if (!activeOrchestraId) return;
-
-    const first_name = formData.get("first_name") as string;
-    const last_name = formData.get("last_name") as string;
-    const email = formData.get("email") as string;
-    const phone = formData.get("phone") as string;
-    const instrument = formData.get("instrument") as string;
-    const section = formData.get("section") as string;
-    const emergency_contact_name = formData.get("emergency_contact_name") as string;
-    const emergency_contact_phone = formData.get("emergency_contact_phone") as string;
-
-    if (!first_name || !last_name) return;
-
-    await supabase.from("members").insert({
-      orchestra_id: activeOrchestraId,
-      first_name,
-      last_name,
-      email,
-      phone,
-      instrument,
-      section,
-      emergency_contact_name,
-      emergency_contact_phone,
-      is_active: true
-    });
-
-    revalidatePath("/members");
-  }
+  const { data: instruments } = await supabase
+    .from("instruments")
+    .select("id, name")
+    .eq("orchestra_id", orchestra.id)
+    .order("name", { ascending: true });
 
   return (
-    <div style={containerStyle}>
+    <div className="bg-ivory min-h-screen">
+      <div className="max-w-2xl mx-auto px-6 py-8">
 
-      <h1 style={headingStyle}>Members</h1>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-2xl font-semibold text-midnight">
+            Add Member
+          </h1>
 
-      {/* Add Member Form */}
-
-      <form action={addMember} style={formStyle}>
-
-        <h2>Add Member</h2>
-
-        <div style={rowStyle}>
-          <input name="first_name" placeholder="First name" style={inputStyle} required />
-          <input name="last_name" placeholder="Last name" style={inputStyle} required />
+          <Link
+            href="/admin/members"
+            className="text-sm text-navy hover:underline"
+          >
+            ← Back to Members
+          </Link>
         </div>
 
-        <div style={rowStyle}>
-          <input name="email" placeholder="Email" style={inputStyle} />
-          <input name="phone" placeholder="Phone" style={inputStyle} />
-        </div>
+        {/* Form */}
+        <form action={createMember} className="space-y-6 bg-white p-6 rounded-xl shadow-sm border border-navy/20">
 
-        <div style={rowStyle}>
-          <input name="instrument" placeholder="Instrument" style={inputStyle} />
-          <input name="section" placeholder="Section" style={inputStyle} />
-        </div>
+          {/* Name */}
+          <div className="flex gap-4">
+            <input
+              name="first_name"
+              placeholder="First name"
+              required
+              className="w-full border border-navy/20 p-2 rounded focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+            <input
+              name="last_name"
+              placeholder="Last name"
+              required
+              className="w-full border border-navy/20 p-2 rounded focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+          </div>
 
-        <div style={rowStyle}>
-          <input
-            name="emergency_contact_name"
-            placeholder="Emergency contact name"
-            style={inputStyle}
-          />
-          <input
-            name="emergency_contact_phone"
-            placeholder="Emergency contact phone"
-            style={inputStyle}
-          />
-        </div>
+          {/* Contact */}
+          <div className="flex gap-4">
+            <input
+              name="email"
+              placeholder="Email"
+              className="w-full border border-navy/20 p-2 rounded focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+            <input
+              name="phone"
+              placeholder="Phone"
+              className="w-full border border-navy/20 p-2 rounded focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+          </div>
 
-        <button type="submit" style={buttonStyle}>
-          Add Member
-        </button>
+          {/* Instrument */}
+          <div>
+            <label className="block text-sm text-navy mb-1">
+              Instrument
+            </label>
+            <select
+              name="instrument_id"
+              required
+              className="w-full border border-navy/20 p-2 rounded focus:outline-none focus:ring-2 focus:ring-gold"
+            >
+              <option value="">Select instrument</option>
+              {(instruments ?? []).map((inst) => (
+                <option key={inst.id} value={inst.id}>
+                  {inst.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      </form>
+          {/* Attendance */}
+          <div>
+            <label className="block text-sm text-navy mb-1">
+              Attendance Requirement (%)
+            </label>
+            <input
+              name="attendance_requirement"
+              type="number"
+              placeholder="e.g. 75"
+              className="w-full border border-navy/20 p-2 rounded focus:outline-none focus:ring-2 focus:ring-gold"
+            />
+          </div>
 
-      {/* Members List */}
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-4">
+            <Link
+              href="/admin/members"
+              className="px-4 py-2 bg-ivory border border-navy/20 rounded text-midnight hover:bg-navy/5"
+            >
+              Cancel
+            </Link>
 
-      <div style={listStyle}>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-midnight text-ivory rounded hover:bg-navy transition"
+            >
+              Create Member
+            </button>
+          </div>
 
-        <h2>Roster</h2>
-
-        {!members || members.length === 0 ? (
-          <p>No members yet.</p>
-        ) : (
-          <ul style={ulStyle}>
-            {members.map(member => (
-              <li key={member.id} style={memberStyle}>
-                <strong>
-                  {member.last_name}, {member.first_name}
-                </strong>
-                <br />
-                {member.instrument} — {member.section}
-                {member.email && (
-                  <>
-                    <br />
-                    {member.email}
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-
+        </form>
       </div>
-
     </div>
   );
 }
-
-/* Styles */
-
-const containerStyle = {
-  padding: "32px",
-  maxWidth: "800px",
-  margin: "0 auto"
-};
-
-const headingStyle = {
-  fontSize: "28px",
-  marginBottom: "24px"
-};
-
-const formStyle = {
-  border: "1px solid #ddd",
-  padding: "20px",
-  borderRadius: "8px",
-  marginBottom: "32px",
-  display: "flex",
-  flexDirection: "column" as const,
-  gap: "12px"
-};
-
-const rowStyle = {
-  display: "flex",
-  gap: "12px"
-};
-
-const inputStyle = {
-  flex: 1,
-  padding: "8px",
-  borderRadius: "4px",
-  border: "1px solid #ccc"
-};
-
-const buttonStyle = {
-  padding: "10px",
-  backgroundColor: "#111",
-  color: "white",
-  border: "none",
-  borderRadius: "4px",
-  cursor: "pointer"
-};
-
-const listStyle = {
-  border: "1px solid #ddd",
-  padding: "20px",
-  borderRadius: "8px"
-};
-
-const ulStyle = {
-  listStyle: "none",
-  padding: 0
-};
-
-const memberStyle = {
-  padding: "8px 0",
-  borderBottom: "1px solid #eee"
-};

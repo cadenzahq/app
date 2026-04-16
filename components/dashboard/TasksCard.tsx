@@ -4,7 +4,7 @@ import Link from "next/link";
 
 interface TasksCardProps {
   tasks: {
-    id: string;
+    event_id: string;
     title: string;
     is_complete: boolean;
   }[];
@@ -13,9 +13,9 @@ interface TasksCardProps {
 export default function TasksCard({ tasks }: TasksCardProps) {
   return (
     <DashboardCard title="Tasks">
-      <div className="flex flex-col h-full justify-between">
+      <div className="flex flex-col h-full">
 
-        <div className="flex flex-col gap-3 max-h-[160px] overflow-y-auto">
+        <div className="flex-1 flex flex-col gap-3 max-h-[160px] overflow-y-auto">
           {tasks.length === 0 ? (
             <p className="text-sm text-gray-500">
               No pending tasks.
@@ -23,7 +23,7 @@ export default function TasksCard({ tasks }: TasksCardProps) {
           ) : (
             tasks.map(task => (
               <label
-                key={task.id}
+                key={task.event_id}
                 className="flex items-center gap-3 text-sm"
               >
                 <input type="checkbox" />
@@ -33,7 +33,7 @@ export default function TasksCard({ tasks }: TasksCardProps) {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mt-4">
+        <div className="grid grid-cols-2 gap-3">
           <Link href="/admin/tasks/new">
             <Button variant="outline" className="w-full">
               New

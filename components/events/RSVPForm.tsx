@@ -1,85 +1,59 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { updateAttendanceAction } from "@/actions/admin/events";
+import { updateRSVPStatusAction } from "@/actions/admin/send-rsvps";
+
+type RSVPStatus = "yes" | "maybe" | "no" | "pending";
 
 export default function RSVPForm({
   eventId,
   memberId,
-  initialStatus
-}: any) {
-
-  const [status, setStatus] = useState(initialStatus);
+  initialStatus,
+}: {
+  eventId: string;
+  memberId: string;
+  initialStatus: RSVPStatus;
+}) {
+  const [status, setStatus] = useState<RSVPStatus>(initialStatus);
   const [saved, setSaved] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   function handleSave() {
-
-    const formData = new FormData();
-    formData.append("member_id", memberId);
-    formData.append("status", status);
-
     startTransition(async () => {
-
-      await updateAttendanceAction(eventId, formData);
+      await updateRSVPStatusAction({
+        eventId,
+        memberId,
+        status,
+      });
 
       setSaved(true);
-
       setTimeout(() => setSaved(false), 2000);
-
     });
-
   }
 
   return (
-
-    <div>
-
-      <label style={{ display: "block", marginBottom: "6px" }}>
-        Your status
-      </label>
-
+    <div className="space-y-3">
       <select
         value={status}
         onChange={(e) => {
-          setStatus(e.target.value);
+          setStatus(e.target.value as RSVPStatus);
           setSaved(false);
         }}
-        style={selectStyle}
+        className="w-full border border-navy/20 rounded px-3 py-2 text-midnight"
       >
-        <option>No Response</option>
-        <option>Attending</option>
-        <option>Maybe</option>
-        <option>Absent</option>
+        <option value="pending">No Response</option>
+        <option value="yes">Attending</option>
+        <option value="maybe">Maybe</option>
+        <option value="no">Not Attending</option>
       </select>
 
       <button
         onClick={handleSave}
         disabled={isPending}
-        style={buttonStyle}
+        className="w-full bg-midnight text-ivory py-2 rounded hover:bg-navy transition"
       >
         {isPending ? "Saving..." : saved ? "Saved ✓" : "Save"}
       </button>
-
     </div>
-
   );
-
 }
-
-const selectStyle = {
-  display: "block",
-  padding: "8px",
-  marginBottom: "12px",
-  width: "100%"
-};
-
-const buttonStyle = {
-  padding: "10px 16px",
-  backgroundColor: "#2563eb",
-  color: "white",
-  border: "none",
-  borderRadius: "8px",
-  cursor: "pointer",
-  fontWeight: "500"
-};

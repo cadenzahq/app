@@ -1,1 +1,1 @@
-export * from "./admin/send-rsvp";
+export * from "./admin/send-rsvps";

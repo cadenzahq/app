@@ -13,10 +13,10 @@ type AttendanceMember = {
   member_id: string
   full_name: string
   instrument: string | null
-  instrument_sort_order: number | null
-  section: string | null
-  section_sort_order: number | null
-  attendance_status: string | null
+  instrument_sort_order: number
+  section: string
+  section_sort_order: number
+  attendance_status: string
 }
 
 export default async function EventPage({
@@ -24,34 +24,34 @@ export default async function EventPage({
 }: {
   params: Promise<{ eventId: string }>
 }) {
-  const { eventId } = await params
+  const resolvedParams = await params
+  const eventId = resolvedParams.eventId
 
   const supabase = await createClient()
   const orchestra = await getActiveOrchestraForUser(supabase)
 
   if (!orchestra) return <div>No active orchestra</div>
 
-  const { data: event } = await supabase
-    .from("events")
-    .select(`
-      *,
-      event_series (
-        id,
-        name,
-        seasons (
-          id,
-          name
-        )
-      )
-    `)
+  const { data: event, error } = await supabase
+    .from("event_detail")
+    .select("*")
     .eq("id", eventId)
     .eq("orchestra_id", orchestra.id)
-    .maybeSingle()
+    .single()
 
   if (!event) return <div>Event not found</div>
 
-  const series = event.event_series
-  const season = event.event_series?.seasons
+  const isLocked = event.is_attendance_locked;
+
+  const series = {
+    id: event.series_id,
+    name: event.series_name,
+  }
+
+  const season = {
+    id: event.season_id,
+    name: event.season_name,
+  }
 
   const { data: members } = await supabase
     .from("event_member_attendance")
@@ -63,7 +63,7 @@ export default async function EventPage({
 
   const summary = members.reduce(
     (acc, member) => {
-      const status = member.attendance_status ?? "no_response"
+      const status = member.attendance_status
 
       acc.total += 1
 
@@ -71,7 +71,7 @@ export default async function EventPage({
       else if (status === "late") acc.late += 1
       else if (status === "absent") acc.absent += 1
       else if (status === "excused") acc.excused += 1
-      else acc.no_response += 1
+      else if (status === "unmarked") acc.no_response += 1
 
       return acc
     },
@@ -87,7 +87,7 @@ export default async function EventPage({
 
   const grouped = members.reduce<Record<string, AttendanceMember[]>>(
     (acc, member) => {
-      const section = member.section ?? "Other"
+      const section = member.section
 
       if (!acc[section]) acc[section] = []
       acc[section].push(member)
@@ -99,15 +99,15 @@ export default async function EventPage({
 
   Object.values(grouped).forEach(sectionMembers => {
     sectionMembers.sort((a, b) => {
-      const aOrder = a.instrument_sort_order ?? 999
-      const bOrder = b.instrument_sort_order ?? 999
+      const aOrder = a.instrument_sort_order
+      const bOrder = b.instrument_sort_order
       return aOrder - bOrder
     })
   })
   
   const sortedSections = Object.entries(grouped).sort((a, b) => {
-    const aOrder = a[1][0]?.section_sort_order ?? 999
-    const bOrder = b[1][0]?.section_sort_order ?? 999
+    const aOrder = a[1][0]?.section_sort_order
+    const bOrder = b[1][0]?.section_sort_order
     return aOrder - bOrder
   })
 
@@ -123,7 +123,8 @@ export default async function EventPage({
     const supabase = await createClient()
 
     const memberId = formData.get("memberId") as string
-    const status = formData.get("status") as string
+    const rawStatus = formData.get("status") as string
+    const status = rawStatus === "" ? null : rawStatus
 
     const { data, error } = await supabase
       .from("attendance")
@@ -142,10 +143,10 @@ export default async function EventPage({
 
     if (error) {
       console.error("Attendance update failed:", error)
-      throw new Error("Failed to update attendance")
+      throw new Error(error.message)
     }
 
-     revalidatePath(`/events/${eventId}`)
+     revalidatePath(`/admin/events/${eventId}`)
   }
 
   return (
@@ -158,6 +159,7 @@ export default async function EventPage({
           event={event}
           series={series}
           season={season}
+          isLocked={isLocked}
         />
 
         <SeriesEvents
@@ -194,6 +196,7 @@ export default async function EventPage({
           <AttendanceTable
             groupedMembers={sortedSections}
             action={updateAttendance}
+            isLocked={isLocked}
           />
 
         </div>

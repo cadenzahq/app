@@ -4,19 +4,53 @@ export interface DashboardSummary {
 }
 
 export interface DashboardData {
-  summary: DashboardSummary | null
-  rsvp_counts: RSVPCounts
-  next_event: Event | null
-  announcements: Announcement[]
-  tasks: Task[]
+  summary: DashboardSummary;
+  rsvp_counts: RSVPCounts;
+  next_event: EventSummary | null;
+  announcements: Announcement[];
+  tasks: Task[];
 }
 
+type RawEvent = {
+  id: string;
+  name: string;
+  start_time: string;
+  end_time: string | null;
+  location: string | null;
+};
+
+type RawAnnouncement = {
+  id: string;
+  title: string;
+  content: string;
+  created_by_name: string;
+  created_at: string;
+  is_pinned: boolean;
+};
+
+type RawTask = {
+  event_id: string;
+  title: string;
+  is_complete: boolean;
+};
+
+export type DashboardRPC = {
+  next_event: RawEvent | null;
+  rsvp_counts: RSVPCounts | null;
+  announcements: RawAnnouncement[] | null;
+  tasks: RawTask[] | null;
+  summary: {
+    attendance_rate: number;
+    active_members: number;
+  } | null;
+};
+
 export interface EventSummary {
-  id: string
-  name: string
-  start_time: string
-  end_time: string
-  location: string | null
+  id: string;
+  name: string;
+  start_time: string;
+  end_time: string | null;
+  location: string | null;
 }
 
 export type EditableEvent = {
@@ -42,14 +76,48 @@ export type RSVPCounts = {
   pending: number
 };
 
-export interface Announcement {
-  id: string
-  content: string
-  created_at?: string
+export type RSVPStatus = "yes" | "maybe" | "no" | "pending";
+
+export interface EventRSVP {
+  member_id: string;
+  full_name: string;
+  instrument: string | null;
+  status: RSVPStatus;
+  responded_at: string | null;
 }
 
-export interface Task {
+export interface Announcement {
   id: string
   title: string
-  is_complete: boolean
+  content: string
+  created_by_name: string
+  created_at: string
+  is_pinned: boolean
 }
+
+export type Task = {
+  event_id: string;
+  title: string;
+  is_complete: boolean;
+};
+
+export type MemberListItem = {
+  member_id: string;
+  display_name: string;
+  email: string | null;
+  instrument: string | null;
+  instrument_label: string | null;
+  role: string | null;
+  attendance_requirement: number | null;
+  section: string | null;
+  section_label: string | null;
+  show_section_header: boolean;
+  show_instrument_header: boolean;
+};
+
+export type Instrument = {
+  id: string;
+  name: string;
+  section_id: string | null;
+  sort_order: number;
+};

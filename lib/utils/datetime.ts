@@ -76,16 +76,21 @@ export function formatEventDateTime(utcString: string): string {
  */
 export function formatTimeRange(
   startUTC: string,
-  endUTC: string
+  endUTC: string | null
 ): string {
-
   const start = new Date(startUTC);
-  const end = new Date(endUTC);
 
   const startStr = start.toLocaleTimeString([], {
     hour: "numeric",
     minute: "2-digit",
   });
+
+  // ✅ Handle null end_time properly
+  if (!endUTC) {
+    return `${startStr} (end time TBD)`;
+  }
+
+  const end = new Date(endUTC);
 
   const endStr = end.toLocaleTimeString([], {
     hour: "numeric",

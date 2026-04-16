@@ -25,29 +25,34 @@ export default function UserMenu({ userName }: UserMenuProps) {
     }
 
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
   }, [])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    window.location.href = '/'
+    window.location.href = '/login'
   }
 
   return (
     <div className="relative" ref={dropdownRef}>
+      {/* Trigger */}
       <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 text-sm font-medium hover:text-indigo-600 transition"
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex items-center gap-1 text-sm font-medium text-ivory hover:text-gold transition"
       >
         {userName}
         <span className="text-xs">▾</span>
       </button>
 
+      {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 mt-2 w-44 rounded-xl shadow-lg bg-white border border-gray-200 py-2">
+        <div className="absolute right-0 mt-2 w-44 rounded-xl shadow-lg bg-navy border border-navy/40 py-2 z-50">
+
           <Link
             href="/profile"
-            className="block px-4 py-2 text-sm hover:bg-gray-100"
+            className="block px-4 py-2 text-sm text-ivory hover:bg-midnight transition"
             onClick={() => setOpen(false)}
           >
             Profile
@@ -55,10 +60,11 @@ export default function UserMenu({ userName }: UserMenuProps) {
 
           <button
             onClick={handleLogout}
-            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+            className="w-full text-left px-4 py-2 text-sm text-ivory hover:bg-midnight transition"
           >
             Logout
           </button>
+
         </div>
       )}
     </div>
