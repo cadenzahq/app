@@ -43,7 +43,9 @@ export default function EventModal({
     if (event) {
 
       const localStart = utcToLocalInput(event.start_time);
-      const localEnd = utcToLocalInput(event.end_time);
+      const localEnd = event.end_time
+        ? utcToLocalInput(event.end_time)
+        : "";
 
       setName(event.name || "");
       setLocation(event.location || "");
