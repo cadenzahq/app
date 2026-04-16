@@ -41,15 +41,24 @@ export default function RSVPEmail({
         <Text style={label}>Quick RSVP:</Text>
 
         <Section style={buttonRow}>
-          <Button href={`${respondBase}?status=yes`} style={yesBtn}>
+          <Button
+            href={`${respondBase}?status=yes`}
+            style={{ ...yesBtn, marginRight: "8px" }}
+          >
             Yes
           </Button>
 
-          <Button href={`${respondBase}?status=maybe`} style={maybeBtn}>
+          <Button
+            href={`${respondBase}?status=maybe`}
+            style={{ ...maybeBtn, marginRight: "8px" }}
+          >
             Maybe
           </Button>
 
-          <Button href={`${respondBase}?status=no`} style={noBtn}>
+          <Button
+            href={`${respondBase}?status=no`}
+            style={noBtn}
+          >
             No
           </Button>
         </Section>
@@ -69,10 +78,6 @@ export default function RSVPEmail({
     </CadenzaLayout>
   );
 }
-
-//
-// 🎨 Styles (Cadenza-compliant)
-//
 
 const text: React.CSSProperties = {
   marginBottom: "12px",
@@ -109,9 +114,7 @@ const label: React.CSSProperties = {
 };
 
 const buttonRow: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "center",
-  gap: "10px",
+  textAlign: "center",
 };
 
 const primaryBtn: React.CSSProperties = {
