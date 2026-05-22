@@ -28,7 +28,7 @@ export async function sendRSVPEmail({
     }),
     
   });
-console.log("Sending email to:", to);
+
   if (error) {
     console.error("Resend error:", error);
     throw new Error("Failed to send RSVP email");

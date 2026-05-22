@@ -38,9 +38,8 @@ export default function OrchestraSwitcher({
   }, [])
 
   const handleSelect = (id: string) => {
-    document.cookie = `active_orchestra_id=${id}; path=/`
-    window.location.reload()
-  }
+    window.location.replace(`/app/${id}`);
+  };
 
   const active = memberships.find(
     (m) => m.orchestra_id === activeOrchestraId

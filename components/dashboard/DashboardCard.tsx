@@ -17,7 +17,7 @@ export default function DashboardCard({
     <Card className="h-full flex flex-col">
       <CardHeader title={title} />
 
-      <div className="flex-1 overflow-y-auto px-2 py-2">
+      <div className="flex-1 px-3 py-3 overflow-y-auto">
         {children}
       </div>
 

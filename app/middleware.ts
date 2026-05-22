@@ -27,7 +27,7 @@ export async function middleware(req: NextRequest) {
 
   const pathname = req.nextUrl.pathname;
 
-  // 🔓 Allow public routes (IMPORTANT)
+  // 🔓 Public routes
   if (
     pathname.startsWith("/login") ||
     pathname.startsWith("/reset-password") ||
@@ -36,40 +36,14 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
-  // 🔒 Not logged in → redirect
-  if (!user) {
+  // 🔒 Require auth for ALL /app routes
+  if (pathname.startsWith("/app") && !user) {
     return NextResponse.redirect(new URL("/login", req.url));
-  }
-
-  // 🔐 Get role (minimal + fast)
-  const activeOrchestraId =
-    req.cookies.get("active_orchestra_id")?.value
-
-  const { data: membership } = await supabase
-    .from("members")
-    .select("role")
-    .eq("user_id", user.id)
-    .eq("orchestra_id", activeOrchestraId)
-    .eq("is_active", true)
-    .maybeSingle()
-
-  const role = membership?.role ?? "member";
-  const navigationRole = role === "member" ? "member" : "admin";
-
-  // 🚫 Block member from admin routes
-  if (
-    pathname.startsWith("/admin") &&
-    navigationRole !== "admin"
-  ) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return res;
 }
 
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/admin/:path*",
-  ],
+  matcher: ["/app/:path*"],
 };

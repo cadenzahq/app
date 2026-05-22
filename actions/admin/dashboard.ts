@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getActiveOrchestraForUser } from "@/lib/orchestra";
+import { getRequestContext } from "@/lib/server/getRequestContext";
 import { RSVP_STATUS } from "@/lib/constants";
 import { sendRSVPEmail } from "@/lib/email";
 
@@ -10,18 +10,36 @@ export async function sendEventReminder(
 ): Promise<{ success: boolean; count: number }> {
   const supabase = await createClient();
 
-  // 1️⃣ Get active orchestra
-  const orchestra = await getActiveOrchestraForUser(supabase);
-  if (!orchestra) {
+  // 🔷 1. Get active orchestra
+  const { activeOrchestraId } = await getRequestContext();
+
+  if (!activeOrchestraId) {
     return { success: false, count: 0 };
   }
 
-  // 2️⃣ Get pending RSVP rows WITH full context
+  // 🔷 2. Validate event belongs to this orchestra
+  const { data: event, error: eventError } = await supabase
+    .from("events")
+    .select("id")
+    .eq("id", eventId)
+    .eq("orchestra_id", activeOrchestraId)
+    .maybeSingle();
+
+  if (eventError) {
+    console.error("Event validation error:", eventError);
+    return { success: false, count: 0 };
+  }
+
+  if (!event) {
+    return { success: false, count: 0 };
+  }
+
+  // 🔷 3. Fetch pending RSVPs
   const { data: rows, error } = await supabase
     .from("event_member_rsvp")
     .select("*")
     .eq("event_id", eventId)
-    .eq("orchestra_id", orchestra.id)
+    .eq("orchestra_id", activeOrchestraId)
     .eq("status", RSVP_STATUS.PENDING);
 
   if (error) {
@@ -33,18 +51,17 @@ export async function sendEventReminder(
     return { success: true, count: 0 };
   }
 
-  // 3️⃣ Send emails
+  // 🔷 4. Send emails (batched)
   const BATCH_SIZE = 5;
   const DELAY_MS = 1000;
 
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
     const batch = rows
       .slice(i, i + BATCH_SIZE)
-      .filter((row) => row.is_active && row.email)
+      .filter((row) => row.is_active && row.email);
 
     await Promise.all(
       batch.map(async (row) => {
-
         let token = row.token;
 
         if (!token) {
@@ -71,7 +88,6 @@ export async function sendEventReminder(
       })
     );
 
-    // Wait between batches to respect rate limit
     if (i + BATCH_SIZE < rows.length) {
       await new Promise((res) => setTimeout(res, DELAY_MS));
     }

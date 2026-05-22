@@ -13,14 +13,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Redirect if already logged in
+  // 🔁 Redirect if already logged in
   useEffect(() => {
     async function checkSession() {
       const { data } = await supabase.auth.getSession();
+
       if (data.session) {
-        router.replace("/admin/dashboard");
+        router.replace("/app"); // ✅ FIXED
       }
     }
+
     checkSession();
   }, [router, supabase]);
 
@@ -38,8 +40,8 @@ export default function LoginPage() {
       return;
     }
 
-    // Let server resolve orchestra + role
-    router.replace("/admin/dashboard");
+    // ✅ Let server resolve orchestra + role
+    router.replace("/app"); // ✅ FIXED
   }
 
   return (

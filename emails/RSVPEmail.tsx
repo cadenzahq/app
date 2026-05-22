@@ -37,31 +37,28 @@ export default function RSVPEmail({
       </Section>
 
       {/* Quick RSVP */}
-      <Section style={center}>
+      <Section style={{ marginTop: "24px", textAlign: "center" }}>
         <Text style={label}>Quick RSVP:</Text>
 
-        <Section style={buttonRow}>
-          <Button
-            href={`${respondBase}?status=yes`}
-            style={{ ...yesBtn, marginRight: "8px" }}
-          >
-            Yes
-          </Button>
-
-          <Button
-            href={`${respondBase}?status=maybe`}
-            style={{ ...maybeBtn, marginRight: "8px" }}
-          >
-            Maybe
-          </Button>
-
-          <Button
-            href={`${respondBase}?status=no`}
-            style={noBtn}
-          >
-            No
-          </Button>
-        </Section>
+        <table align="center" role="presentation" style={{ margin: "0 auto" }}>
+          <tr>
+            <td style={{ padding: "0 4px" }}>
+              <Button href={`${respondBase}?status=yes`} style={yesBtn}>
+                Yes
+              </Button>
+            </td>
+            <td style={{ padding: "0 4px" }}>
+              <Button href={`${respondBase}?status=maybe`} style={maybeBtn}>
+                Maybe
+              </Button>
+            </td>
+            <td style={{ padding: "0 4px" }}>
+              <Button href={`${respondBase}?status=no`} style={noBtn}>
+                No
+              </Button>
+            </td>
+          </tr>
+        </table>
       </Section>
 
       {/* Full Page */}
@@ -134,8 +131,8 @@ const yesBtn: React.CSSProperties = {
 };
 
 const maybeBtn: React.CSSProperties = {
-  backgroundColor: "#f59e0b",
-  color: "#ffffff",
+  backgroundColor: "#D4A44D",
+  color: "#0F172A",
   padding: "10px 14px",
   borderRadius: "6px",
   textDecoration: "none",

@@ -1,53 +1,52 @@
-"use client";
-
-import Link from "next/link";
-
-type EmptyStateType = "events" | "members" | "announcements";
+type EmptyStateType =
+  | "events"
+  | "members"
+  | "announcements";
 
 interface Props {
   type: EmptyStateType;
 }
 
-const config = {
+const config: Record<
+  EmptyStateType,
+  {
+    title: string;
+    description: string;
+  }
+> = {
   events: {
     title: "No events yet",
-    description: "Create your first event to get started.",
-    cta: "Create Event",
-    href: "/admin/events/new",
+    description:
+      "Create your first event to get started.",
   },
+
   members: {
     title: "No members yet",
-    description: "Add members to begin managing your orchestra.",
-    cta: "Add Member",
-    href: "/admin/members/new",
+    description:
+      "Add members to begin managing your orchestra.",
   },
+
   announcements: {
     title: "No announcements yet",
-    description: "Post an announcement to communicate with your group.",
-    cta: "Create Announcement",
-    href: "/admin/announcements/new",
+    description:
+      "Announcements will appear here once posted.",
   },
 };
 
-export default function EmptyState({ type }: Props) {
-  const c = config[type];
+export default function EmptyState({
+  type,
+}: Props) {
+  const state = config[type];
 
   return (
     <div className="border border-navy/20 rounded-xl p-8 text-center bg-white shadow-sm">
       <h2 className="text-lg font-semibold text-midnight mb-2">
-        {c.title}
+        {state.title}
       </h2>
 
-      <p className="text-navy text-sm mb-4">
-        {c.description}
+      <p className="text-sm text-navy/70">
+        {state.description}
       </p>
-
-      <Link
-        href={c.href}
-        className="inline-block bg-gold text-midnight px-4 py-2 rounded hover:opacity-90 transition"
-      >
-        {c.cta}
-      </Link>
     </div>
   );
 }

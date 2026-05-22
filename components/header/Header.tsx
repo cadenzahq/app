@@ -1,26 +1,39 @@
-import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
-import { getUserContext } from '@/lib/user-context'
-import { getNavigation } from '@/lib/navigation'
-import HeaderUI from './HeaderUI'
+import { createClient } from "@/lib/supabase/server";
+import { getCurrentMember } from "@/actions/shared/getCurrentMember";
+import { redirect } from "next/navigation";
+import { getNavigation } from "@/lib/navigation";
 
-export default async function Header() {
-  const supabase = await createClient()
-  const cookieStore = await cookies()
+import HeaderUI from "./HeaderUI";
 
-  const context = await getUserContext()
+export default async function Header({
+  orchestraId,
+}: {
+  orchestraId: string;
+}) {
+  const supabase = await createClient();
 
-  // Not logged in → no header (cleaner for login/reset pages)
-  if (!context.user) {
-    return null
+  // 🔷 Auth user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return null;
   }
 
-  // Navigation
-  const navItems = getNavigation(context.navigationRole)
+  // 🔷 Member (authoritative)
+  const member = await getCurrentMember(orchestraId);
 
-  // Memberships (for switcher)
-  const { data } = await supabase
-    .from('members')
+  if (!member) {
+    redirect("/login");
+  }
+
+  // 🔷 Role → navigation
+  const navItems = getNavigation(member.role, orchestraId);
+
+  // 🔷 Memberships (for switcher)
+  const { data, error } = await supabase
+    .from("members")
     .select(`
       orchestra_id,
       orchestras (
@@ -28,7 +41,15 @@ export default async function Header() {
         name
       )
     `)
-    .eq('user_id', context.user.id)
+    .eq("user_id", user.id)
+    .eq("is_active", true);
+
+  console.log("HEADER memberships error:", error);
+
+  console.log(
+    "HEADER memberships data:",
+    JSON.stringify(data, null, 2)
+  );
 
   const memberships =
     (data ?? []).map((m) => ({
@@ -36,21 +57,14 @@ export default async function Header() {
       orchestras: Array.isArray(m.orchestras)
         ? m.orchestras[0]
         : m.orchestras,
-    })) ?? []
-
-  const activeOrchestraId =
-    cookieStore.get('active_orchestra_id')?.value
-
-  // User display name (quick + safe fallback)
-  const displayName =
-    context.user.email ?? 'User'
+    })) ?? [];
 
   return (
     <HeaderUI
       navItems={navItems}
-      userName={displayName}
+      userName={member.display_name || user.email || "User"}
       memberships={memberships}
-      activeOrchestraId={activeOrchestraId}
+      activeOrchestraId={orchestraId} // ✅ source of truth
     />
-  )
+  );
 }

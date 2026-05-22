@@ -1,27 +1,18 @@
-export type NavigationRole = "admin" | "member"
+export function getNavigation(role: string, orchestraId: string) {
+  if (role === "member") {
+    return [
+      { label: "Dashboard", href: `/app/${orchestraId}/member/dashboard` },
+      { label: "Events", href: `/app/${orchestraId}/member/events` },
+      { label: "Announcements", href: `/app/${orchestraId}/member/announcements` },
+      { label: "Attendance", href: `/app/${orchestraId}/member/attendance` },
+    ];
+  }
 
-export type NavItem = {
-  label: string
-  href: string
-}
-
-export const navigation: Record<NavigationRole, NavItem[]> = {
-  admin: [
-    { label: "Dashboard", href: "/admin/dashboard" },
-    { label: "Events", href: "/admin/events" },
-    { label: "Members", href: "/admin/members" },
-    { label: "Announcements", href: "/admin/announcements" },
-    { label: "Tasks", href: "/admin/tasks" },
-  ],
-
-  member: [
-    { label: "Dashboard", href: "/dashboard" },
-    { label: "Events", href: "/events" },
-    { label: "RSVP", href: "/rsvp" },
-  ],
-}
-
-export function getNavigation(role: NavigationRole | null) {
-  if (!role) return []
-  return navigation[role]
+  return [
+    { label: "Dashboard", href: `/app/${orchestraId}/admin/dashboard` },
+    { label: "Events", href: `/app/${orchestraId}/admin/events` },
+    { label: "Members", href: `/app/${orchestraId}/admin/members` },
+    { label: "Announcements", href: `/app/${orchestraId}/admin/announcements` },
+    { label: "Tasks", href: `/app/${orchestraId}/admin/tasks` },
+  ];
 }

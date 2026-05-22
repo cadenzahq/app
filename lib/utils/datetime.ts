@@ -1,78 +1,82 @@
 /**
  * Cadenza datetime utilities
  *
- * Handles safe conversion between:
- * - Supabase UTC timestamps
- * - datetime-local input fields
- * - human-readable display
- *
- * NEVER manually slice ISO strings outside this file.
+ * Single source of truth for ALL datetime formatting.
  */
 
+const TIMEZONE = "America/New_York";
 
 /**
  * Convert Supabase UTC timestamp → datetime-local input value
- *
- * Example:
- * 2026-02-23T00:00:00Z → "2026-02-22T19:00" (EST)
  */
 export function utcToLocalInput(utcString: string): string {
   const date = new Date(utcString);
 
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
 
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const get = (type: string) =>
+    parts.find((p) => p.type === type)?.value ?? "";
 
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
 }
-
 
 /**
- * Convert datetime-local input → UTC ISO string for Supabase
- *
- * Example:
- * "2026-02-22T19:00" → "2026-02-23T00:00:00.000Z"
+ * Convert datetime-local input → UTC ISO string
  */
 export function localInputToUTC(localString: string): string {
-  const date = new Date(localString);
-  return date.toISOString();
+  return new Date(localString).toISOString();
 }
 
+/**
+ * Cadenza datetime utilities (FIXED)
+ *
+ * Handles Supabase timestamps safely without corrupting valid ISO strings
+ */
+
+/**
+ * Normalize Supabase timestamp safely
+ */
+function parseDate(value: string): Date {
+  if (!value) return new Date(NaN);
+
+  // If already ISO with timezone (+00:00 or Z), use as-is
+  if (value.includes("T")) {
+    return new Date(value);
+  }
+
+  // Fallback: convert space-separated to ISO
+  return new Date(value.replace(" ", "T"));
+}
 
 /**
  * Format Supabase timestamp → readable display
- *
- * Example:
- * "2026-02-23T00:00:00Z" →
- * "Feb 22, 2026 at 7:00 PM"
  */
 export function formatEventDateTime(utcString: string): string {
-  const date = new Date(utcString);
+  const date = parseDate(utcString);
 
-  const datePart = date.toLocaleDateString([], {
+  if (isNaN(date.getTime())) {
+    return "Invalid Date";
+  }
+
+  return date.toLocaleString([], {
     month: "short",
     day: "numeric",
     year: "numeric",
-  });
-
-  const timePart = date.toLocaleTimeString([], {
     hour: "numeric",
     minute: "2-digit",
   });
-
-  return `${datePart} at ${timePart}`;
 }
-
 
 /**
  * Format time range
- *
- * Example:
- * start, end →
- * "7:00 PM – 9:30 PM"
  */
 export function formatTimeRange(
   startUTC: string,
@@ -80,42 +84,31 @@ export function formatTimeRange(
 ): string {
   const start = new Date(startUTC);
 
-  const startStr = start.toLocaleTimeString([], {
+  const startStr = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIMEZONE,
     hour: "numeric",
     minute: "2-digit",
-  });
+  }).format(start);
 
-  // ✅ Handle null end_time properly
-  if (!endUTC) {
-    return `${startStr} (end time TBD)`;
-  }
+  if (!endUTC) return `${startStr} (end time TBD)`;
 
   const end = new Date(endUTC);
 
-  const endStr = end.toLocaleTimeString([], {
+  const endStr = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIMEZONE,
     hour: "numeric",
     minute: "2-digit",
-  });
+  }).format(end);
 
   return `${startStr} – ${endStr}`;
 }
 
 /**
- * Add hours to a datetime-local string
- *
- * Example:
- * "2026-02-22T19:00" → +2 → "2026-02-22T21:00"
+ * Add hours to datetime-local string
  */
 export function addHours(localString: string, hours: number): string {
   const date = new Date(localString);
   date.setHours(date.getHours() + hours);
 
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  const hour = String(date.getHours()).padStart(2, "0");
-  const minute = String(date.getMinutes()).padStart(2, "0");
-
-  return `${year}-${month}-${day}T${hour}:${minute}`;
+  return date.toISOString().slice(0, 16);
 }
